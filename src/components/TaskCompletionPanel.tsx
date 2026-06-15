@@ -15,7 +15,10 @@ const formatCompareNumber = (value: number) => `${Math.abs(value)}`;
 type StatCard = {
   label: string;
   value: number;
+  previousLabel: string;
+  previousValue: number;
   tone: string;
+  previousTone: string;
   className: string;
   compare?: {
     value: number;
@@ -27,7 +30,10 @@ const getConsumptionStats = (data: DashboardData): StatCard[] => [
   {
     label: '本期总消耗',
     value: data.periodConsumption,
+    previousLabel: '上期总消耗',
+    previousValue: data.previousPeriodConsumption,
     tone: 'text-blue-400',
+    previousTone: 'text-amber-400',
     compare: {
       value: getPercentChange(data.periodConsumption, data.previousPeriodConsumption),
       text: formatComparePercent(getPercentChange(data.periodConsumption, data.previousPeriodConsumption)),
@@ -35,26 +41,17 @@ const getConsumptionStats = (data: DashboardData): StatCard[] => [
     className: 'border-blue-900/40 bg-[#172437]',
   },
   {
-    label: '上期总消耗',
-    value: data.previousPeriodConsumption,
-    tone: 'text-amber-400',
-    className: 'border-amber-900/30 bg-[#1d2031]',
-  },
-  {
     label: '本期日均消耗',
     value: data.periodAverageConsumption,
+    previousLabel: '上期日均消耗',
+    previousValue: data.previousPeriodAverageConsumption,
     tone: 'text-emerald-400',
+    previousTone: 'text-slate-100',
     compare: {
       value: getPercentChange(data.periodAverageConsumption, data.previousPeriodAverageConsumption),
       text: formatComparePercent(getPercentChange(data.periodAverageConsumption, data.previousPeriodAverageConsumption)),
     },
     className: 'border-emerald-900/30 bg-[#142d34]',
-  },
-  {
-    label: '上期日均消耗',
-    value: data.previousPeriodAverageConsumption,
-    tone: 'text-slate-100',
-    className: 'border-slate-800 bg-[#161827]',
   },
 ];
 
@@ -62,7 +59,10 @@ const getCustomerStats = (data: DashboardData): StatCard[] => [
   {
     label: '本期客户量',
     value: data.periodCustomers,
+    previousLabel: '上期客户量',
+    previousValue: data.previousPeriodCustomers,
     tone: 'text-cyan-300',
+    previousTone: 'text-violet-300',
     compare: {
       value: data.periodCustomers - data.previousPeriodCustomers,
       text: formatCompareNumber(data.periodCustomers - data.previousPeriodCustomers),
@@ -70,31 +70,22 @@ const getCustomerStats = (data: DashboardData): StatCard[] => [
     className: 'border-cyan-900/40 bg-[#102436]',
   },
   {
-    label: '上期客户量',
-    value: data.previousPeriodCustomers,
-    tone: 'text-violet-300',
-    className: 'border-violet-900/30 bg-[#1c1b32]',
-  },
-  {
     label: '本期日均客户',
     value: data.periodAverageCustomers,
+    previousLabel: '上期日均客户',
+    previousValue: data.previousPeriodAverageCustomers,
     tone: 'text-lime-300',
+    previousTone: 'text-slate-100',
     compare: {
       value: data.periodAverageCustomers - data.previousPeriodAverageCustomers,
       text: formatCompareNumber(data.periodAverageCustomers - data.previousPeriodAverageCustomers),
     },
     className: 'border-lime-900/30 bg-[#152b25]',
   },
-  {
-    label: '上期日均客户',
-    value: data.previousPeriodAverageCustomers,
-    tone: 'text-slate-100',
-    className: 'border-slate-800 bg-[#171827]',
-  },
 ];
 
 const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-1 gap-4">
     {items.map((stat) => {
       const isUp = stat.compare ? stat.compare.value > 0 : false;
       const isDown = stat.compare ? stat.compare.value < 0 : false;
@@ -105,16 +96,24 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
           : 'text-slate-500';
 
       return (
-        <Card key={stat.label} className={`${stat.className} min-h-[132px] shadow-lg`}>
-          <CardContent className="flex h-full flex-col justify-between p-5">
-            <span className="text-xs font-semibold text-slate-400">{stat.label}</span>
-            <div className="flex items-baseline gap-3">
-              <span className={`text-3xl font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
-              {stat.compare && (
-                <span className={`text-[21px] font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
-                  {isUp ? '↑' : isDown ? '↓' : '→'} {stat.compare.text}
-                </span>
-              )}
+        <Card key={stat.label} className={`${stat.className} min-h-[156px] shadow-lg`}>
+          <CardContent className="flex h-full flex-col justify-center gap-4 p-5">
+            <div>
+              <span className="text-xs font-semibold text-slate-400">{stat.label}</span>
+              <div className="mt-2 flex items-baseline gap-3">
+                <span className={`text-3xl font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
+                {stat.compare && (
+                  <span className={`text-[21px] font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
+                    {isUp ? '↑' : isDown ? '↓' : '→'} {stat.compare.text}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="border-t border-slate-700/50 pt-3">
+              <span className="text-xs font-semibold text-slate-500">{stat.previousLabel}</span>
+              <div className={`mt-1 text-2xl font-extrabold tabular-nums ${stat.previousTone}`}>
+                {formatNumber(stat.previousValue)}
+              </div>
             </div>
           </CardContent>
         </Card>

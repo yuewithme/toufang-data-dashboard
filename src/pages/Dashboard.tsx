@@ -43,12 +43,12 @@ const Dashboard: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
           <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-12">
             {/* Left Column - Task Completion */}
-            <div className="lg:col-span-5 xl:col-span-4">
+            <div className="lg:col-span-4 xl:col-span-3">
               <TaskCompletionPanel data={dashboardData} />
             </div>
 
             {/* Right Column - Customer Details */}
-            <div className="lg:col-span-7 xl:col-span-8 h-full min-h-[600px]">
+            <div className="lg:col-span-8 xl:col-span-9 h-full min-h-[600px]">
               <CustomerDetailsPanel
                 rankCount={filters.rankCount}
                 selectedPlatform={filters.selectedPlatform}
