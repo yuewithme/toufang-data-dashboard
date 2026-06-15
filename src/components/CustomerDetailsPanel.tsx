@@ -62,16 +62,11 @@ const PlatformCard: React.FC<{
   platform: PlatformPerformance;
   customers: PlatformCustomerItem[];
   rankCount: number;
-  brandName: string;
-}> = ({ platform, customers, rankCount, brandName }) => {
+}> = ({ platform, customers, rankCount }) => {
   const styles = accentStyles[platform.accentColor];
   const rankedCustomers = [...customers]
     .sort((a, b) => b.consumption - a.consumption)
     .slice(0, rankCount);
-  const displayConsumption = brandName
-    ? customers.reduce((total, customer) => total + customer.consumption, 0)
-    : platform.periodConsumption;
-  const displayCustomers = brandName ? customers.length : platform.periodCustomers;
 
   return (
     <section
@@ -89,11 +84,11 @@ const PlatformCard: React.FC<{
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-md border border-blue-900/40 bg-[#1b3048] p-3">
             <div className="text-xs font-bold text-slate-300">本期消耗量</div>
-            <div className={`mt-1 text-2xl font-extrabold tabular-nums ${styles.value}`}>{formatNumber(displayConsumption)}</div>
+            <div className={`mt-1 text-2xl font-extrabold tabular-nums ${styles.value}`}>{formatNumber(platform.periodConsumption)}</div>
           </div>
           <div className="rounded-md border border-blue-900/40 bg-[#1b3048] p-3">
             <div className="text-xs font-bold text-slate-300">本期客户总量</div>
-            <div className={`mt-1 text-2xl font-extrabold tabular-nums ${styles.customer}`}>{formatNumber(displayCustomers)}</div>
+            <div className={`mt-1 text-2xl font-extrabold tabular-nums ${styles.customer}`}>{formatNumber(platform.periodCustomers)}</div>
           </div>
         </div>
       </div>
@@ -160,7 +155,6 @@ export const CustomerDetailsPanel: React.FC<{
               platform={platform}
               customers={customers}
               rankCount={rankCount}
-              brandName={normalizedBrandName}
             />
           ))
         ) : (

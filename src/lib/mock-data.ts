@@ -55,6 +55,8 @@ export type DateRangeFilters = {
   endDate: string;
   previousStartDate: string;
   previousEndDate: string;
+  selectedPlatform?: string;
+  brandName?: string;
 };
 
 const customerNames = [
@@ -311,8 +313,11 @@ const getDailyConsumption = (baseConsumption: number, platform: string, customer
   return Math.round((baseConsumption * platformMultiplier * getCustomerFactor(customerName, dateKey)) / 1000) * 1000;
 };
 
-const aggregatePlatformCustomers = (platform: PlatformPerformance, dates: string[]) => {
+const aggregatePlatformCustomers = (platform: PlatformPerformance, dates: string[], brandName = "") => {
+  const normalizedBrandName = brandName.trim();
+
   return platform.customers
+    .filter((customer) => !normalizedBrandName || customer.name.includes(normalizedBrandName))
     .map((customer) => ({
       name: customer.name,
       consumption: dates.reduce((total, dateKey) => total + getDailyConsumption(customer.consumption, platform.name, customer.name, dateKey), 0),
@@ -325,10 +330,13 @@ export const buildDashboardData = (filters: DateRangeFilters): DashboardData => 
   const previousDates = getRangeDates(filters.previousStartDate, filters.previousEndDate);
   const dayCount = Math.max(periodDates.length, 1);
   const previousDayCount = Math.max(previousDates.length, 1);
+  const sourcePlatforms = filters.selectedPlatform
+    ? mockDashboardData.platformPerformance.filter((platform) => platform.name === filters.selectedPlatform)
+    : mockDashboardData.platformPerformance;
 
-  const platformPerformance = mockDashboardData.platformPerformance.map((platform) => {
-    const currentCustomers = aggregatePlatformCustomers(platform, periodDates);
-    const previousCustomers = aggregatePlatformCustomers(platform, previousDates);
+  const platformPerformance = sourcePlatforms.map((platform) => {
+    const currentCustomers = aggregatePlatformCustomers(platform, periodDates, filters.brandName);
+    const previousCustomers = aggregatePlatformCustomers(platform, previousDates, filters.brandName);
     const previousByName = new Map(previousCustomers.map((customer) => [customer.name, customer.consumption]));
     const currentWithPrevious = currentCustomers.map((customer) => ({
       ...customer,
@@ -343,8 +351,8 @@ export const buildDashboardData = (filters: DateRangeFilters): DashboardData => 
     };
   });
 
-  const previousPlatformPerformance = mockDashboardData.platformPerformance.map((platform) => {
-    const customers = aggregatePlatformCustomers(platform, previousDates);
+  const previousPlatformPerformance = sourcePlatforms.map((platform) => {
+    const customers = aggregatePlatformCustomers(platform, previousDates, filters.brandName);
 
     return {
       ...platform,
