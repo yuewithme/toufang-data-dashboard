@@ -216,6 +216,112 @@ changePercent = previousConsumption === 0 ? 0 : change / previousConsumption * 1
 - 表格展示所有源字段，并额外展示后端归一化后的 `platform` 字段。
 - 明细页沿用当前已点击“查询”生效后的日期、品牌、平台筛选条件。
 
+## 6. 原始数据记录操作接口
+
+原始数据页的复选框用于选择记录，后续对选中记录执行修改或删除。新增、修改只允许操作三个字段：
+
+- `customerGroup`：客户群。
+- `nonGiftConsumption`：非赠款消耗。
+- `agencyAccountName`：代理商账户名。
+
+`platform` 不是源表字段，禁止前端直接提交平台值。后端必须根据 `agencyAccountName` 按固定映射关系重新计算平台。
+
+### 新增记录
+
+`POST /api/dashboard/raw-data`
+
+请求体：
+
+```json
+{
+  "customerGroup": "沃虎&适合综合对接群代投",
+  "nonGiftConsumption": 1035.91,
+  "agencyAccountName": "小红书聚光乘风--沃虎"
+}
+```
+
+后端处理逻辑：
+
+1. 校验三个字段必填。
+2. `nonGiftConsumption` 必须为大于等于 0 的数字。
+3. 根据 `agencyAccountName` 计算 `platform`，但 `platform` 只作为返回和聚合字段，不写入原始源表字段。
+4. 新增记录如果 `customerGroup` 不包含 `代投`，可以保存到源表，但不会进入看板统计和原始数据默认列表。
+
+响应：
+
+```json
+{
+  "id": "record_001",
+  "platform": "小红书",
+  "passesDashboardFilter": true
+}
+```
+
+### 修改记录
+
+`PATCH /api/dashboard/raw-data/{id}`
+
+请求体：
+
+```json
+{
+  "customerGroup": "沃虎&适合综合对接群代投",
+  "nonGiftConsumption": 1035.91,
+  "agencyAccountName": "小红书聚光乘风--沃虎"
+}
+```
+
+后端处理逻辑：
+
+1. 只允许修改 `customerGroup`、`nonGiftConsumption`、`agencyAccountName` 三个字段。
+2. 忽略或拒绝其他字段，例如 `platform`、`brandName`、`consumeDate`、`customerAccountId`。
+3. 修改 `agencyAccountName` 后，需要重新按映射关系计算平台。
+4. 修改后如果 `customerGroup` 不包含 `代投`，该记录立即不再进入看板统计和原始数据默认列表。
+
+响应：
+
+```json
+{
+  "id": "record_001",
+  "platform": "小红书",
+  "passesDashboardFilter": true
+}
+```
+
+### 删除记录
+
+`DELETE /api/dashboard/raw-data`
+
+请求体：
+
+```json
+{
+  "ids": ["record_001", "record_002"]
+}
+```
+
+删除不是物理删除。业务含义是让记录不再通过 `客户群包含代投` 的基础筛选。后端推荐实现方式：
+
+```ts
+customerGroup = customerGroup.replaceAll('代投', '')
+```
+
+如果源表支持审核状态字段，也可以使用等价方式：
+
+```ts
+passesDashboardFilter = false
+```
+
+但无论底层如何实现，返回给看板和原始数据默认列表时，这些记录都必须被排除。
+
+响应：
+
+```json
+{
+  "updatedCount": 2
+}
+```
+
 ## 当前页面需要后端接入的数据清单
 
 - 顶部筛选候选数据：平台列表、品牌/客户名称列表。
@@ -225,6 +331,7 @@ changePercent = previousConsumption === 0 ? 0 : change / previousConsumption * 1
 - 右侧平台汇总：每个平台的本期消耗量、本期客户总量。
 - 右侧客户榜单：客户名称、本期消耗量、上期消耗量。
 - 原始数据明细：源表全部字段，以及后端归一化后的平台字段。
+- 原始数据操作：新增、修改、删除记录；新增/修改只提交客户群、非赠款消耗、代理商账户名。
 - 页脚更新时间：数据最新同步时间。
 
 ## 源表字段映射方案

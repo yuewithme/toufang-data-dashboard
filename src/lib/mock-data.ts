@@ -334,10 +334,24 @@ const getDailyConsumption = (baseConsumption: number, platform: string, customer
 const sourceDateKeys = Object.keys(platformDailyMultipliers).sort();
 
 const platformAgencyAccount: Record<string, string> = {
-  "小红书": "小红书聚光乘风账户",
-  "视频号": "视频号磁力投放账户",
-  "支付宝": "支付宝数字营销账户",
+  "小红书": "小红书聚光乘风--沃虎",
+  "视频号": "腾讯视频号--沃虎",
+  "支付宝": "支付宝-沃虎",
 };
+
+export const agencyPlatformMap = {
+  "支付宝-沃虎": "支付宝",
+  "小红书聚光乘风--沃虎": "小红书",
+  "小红书品专--沃虎": "小红书",
+  "腾讯视频号--沃虎": "视频号",
+} as const;
+
+export type AgencyAccountName = keyof typeof agencyPlatformMap;
+
+export const agencyAccountOptions = Object.keys(agencyPlatformMap) as AgencyAccountName[];
+
+export const normalizePlatform = (agencyAccountName: string) =>
+  agencyPlatformMap[agencyAccountName as AgencyAccountName] ?? "其他";
 
 const platformCompanyEntity: Record<string, string> = {
   "小红书": "杭州沃虎网络科技有限公司",
@@ -365,7 +379,7 @@ const createMockSourceRows = (): RawSourceDataRow[] => {
           brandName: customer.name,
           companyEntity: platformCompanyEntity[platform.name] ?? "杭州沃虎科技有限公司",
           agencyAccountName: platformAgencyAccount[platform.name] ?? `${platform.name}投放账户`,
-          customerGroup: `沃虎&${customer.name}${platform.name}对接群`,
+          customerGroup: `沃虎&${customer.name}${platform.name}代投对接群`,
           nonGiftConsumption,
           brandAdGroup: seed % 3 === 0 ? 1 : 0,
           biddingAdGroup: seed % 4 === 0 ? 1 : 0,
@@ -374,7 +388,7 @@ const createMockSourceRows = (): RawSourceDataRow[] => {
           returnPointCash: 1,
           remark: seed % 5 === 0 ? "重点跟进" : "",
           consumeDate: dateKey,
-          platform: platform.name,
+          platform: normalizePlatform(platformAgencyAccount[platform.name] ?? ""),
         };
       }),
     ),
@@ -387,6 +401,7 @@ export const getRawSourceRows = (filters?: Partial<DateRangeFilters>) => {
   const normalizedBrandName = filters?.brandName?.trim() ?? "";
 
   return mockSourceRows
+    .filter((row) => row.customerGroup.includes("代投"))
     .filter((row) => !filters?.startDate || row.consumeDate >= filters.startDate)
     .filter((row) => !filters?.endDate || row.consumeDate <= filters.endDate)
     .filter((row) => !filters?.selectedPlatform || row.platform === filters.selectedPlatform)
@@ -394,24 +409,23 @@ export const getRawSourceRows = (filters?: Partial<DateRangeFilters>) => {
     .sort((a, b) => {
       if (a.consumeDate !== b.consumeDate) return b.consumeDate.localeCompare(a.consumeDate);
       if (a.platform !== b.platform) return a.platform.localeCompare(b.platform);
-      return (b.nonGiftConsumption + b.giftConsumption) - (a.nonGiftConsumption + a.giftConsumption);
+      return b.nonGiftConsumption - a.nonGiftConsumption;
     });
 };
-
-const getTotalConsumption = (row: RawSourceDataRow) => row.nonGiftConsumption + row.giftConsumption;
 
 const aggregatePlatformCustomers = (platform: PlatformPerformance, dates: string[], brandName = "") => {
   const normalizedBrandName = brandName.trim();
   const dateSet = new Set(dates);
   const rows = mockSourceRows.filter((row) =>
     row.platform === platform.name &&
+    row.customerGroup.includes("代投") &&
     dateSet.has(row.consumeDate) &&
     (!normalizedBrandName || row.brandName.includes(normalizedBrandName)),
   );
   const consumptionByBrand = new Map<string, number>();
 
   rows.forEach((row) => {
-    consumptionByBrand.set(row.brandName, (consumptionByBrand.get(row.brandName) ?? 0) + getTotalConsumption(row));
+    consumptionByBrand.set(row.brandName, (consumptionByBrand.get(row.brandName) ?? 0) + row.nonGiftConsumption);
   });
 
   return Array.from(consumptionByBrand.entries())
