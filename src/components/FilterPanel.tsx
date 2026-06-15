@@ -23,6 +23,18 @@ const getYesterdayDateKey = () => {
   return toDateKey(date);
 };
 
+const getTodayDateKey = () => toDateKey(new Date());
+
+const getCurrentMonthRange = () => {
+  const today = new Date();
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  return {
+    start: toDateKey(monthStart),
+    end: toDateKey(today),
+  };
+};
+
 const initialStartDate = getYesterdayDateKey();
 const initialEndDate = initialStartDate;
 
@@ -107,6 +119,26 @@ const DateRangeCalendar: React.FC<{
     onClose();
   };
 
+  const applyShortcut = (shortcut: 'today' | 'last7Days' | 'currentMonth') => {
+    const today = new Date();
+    let nextStartDate = toDateKey(today);
+    let nextEndDate = toDateKey(today);
+
+    if (shortcut === 'last7Days') {
+      nextStartDate = toDateKey(addDays(today, -6));
+    }
+
+    if (shortcut === 'currentMonth') {
+      const monthRange = getCurrentMonthRange();
+      nextStartDate = monthRange.start;
+      nextEndDate = monthRange.end;
+    }
+
+    commitRange(nextStartDate, nextEndDate);
+    setSelectingEnd(false);
+    onClose();
+  };
+
   const renderMonth = (monthDate: Date) => (
     <div className="w-[300px] px-4 py-3">
       <div className="mb-3 text-center text-base text-slate-700">{getMonthTitle(monthDate)}</div>
@@ -144,7 +176,7 @@ const DateRangeCalendar: React.FC<{
   );
 
   return (
-    <div className="absolute left-[72px] top-10 z-30 flex rounded border border-slate-200 bg-white text-slate-900 shadow-2xl shadow-black/30">
+    <div className="absolute left-[72px] top-10 z-30 rounded border border-slate-200 bg-white text-slate-900 shadow-2xl shadow-black/30">
       <div className="absolute left-10 top-[-7px] h-3 w-3 rotate-45 border-l border-t border-slate-200 bg-white" />
       <button
         type="button"
@@ -178,9 +210,34 @@ const DateRangeCalendar: React.FC<{
       >
         <ChevronsRight className="h-4 w-4" />
       </button>
-      {renderMonth(leftMonth)}
-      <div className="w-px bg-slate-200" />
-      {renderMonth(rightMonth)}
+      <div className="flex">
+        {renderMonth(leftMonth)}
+        <div className="w-px bg-slate-200" />
+        {renderMonth(rightMonth)}
+      </div>
+      <div className="flex items-center justify-end gap-2 border-t border-slate-200 px-4 py-3">
+        <button
+          type="button"
+          className="h-8 rounded border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+          onClick={() => applyShortcut('today')}
+        >
+          当天
+        </button>
+        <button
+          type="button"
+          className="h-8 rounded border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+          onClick={() => applyShortcut('last7Days')}
+        >
+          近七天
+        </button>
+        <button
+          type="button"
+          className="h-8 rounded border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+          onClick={() => applyShortcut('currentMonth')}
+        >
+          本月
+        </button>
+      </div>
     </div>
   );
 };
