@@ -99,10 +99,10 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
       const isUp = stat.compare ? stat.compare.value > 0 : false;
       const isDown = stat.compare ? stat.compare.value < 0 : false;
       const compareClassName = isUp
-        ? 'text-rose-400'
+        ? 'text-[#b91c1c]'
         : isDown
-          ? 'text-emerald-300'
-          : 'text-slate-300';
+          ? 'text-[#047857]'
+          : 'text-slate-500';
 
       return (
         <Card key={stat.label} className={`${stat.className} min-h-[132px] shadow-lg`}>

@@ -5,17 +5,18 @@ import { TaskCompletionPanel } from '../components/TaskCompletionPanel';
 import { CustomerDetailsPanel } from '../components/CustomerDetailsPanel';
 
 const Dashboard: React.FC = () => {
-  const [rankCount, setRankCount] = React.useState(15);
-  const [selectedPlatform, setSelectedPlatform] = React.useState('');
+  const [filters, setFilters] = React.useState({
+    rankCount: 15,
+    selectedPlatform: '',
+    brandName: '',
+  });
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0a1a] text-slate-50 overflow-hidden">
       <DashboardHeader />
       <FilterPanel
-        rankCount={rankCount}
-        selectedPlatform={selectedPlatform}
-        onRankCountChange={setRankCount}
-        onSelectedPlatformChange={setSelectedPlatform}
+        filters={filters}
+        onApplyFilters={setFilters}
       />
       
       <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
@@ -27,7 +28,11 @@ const Dashboard: React.FC = () => {
 
           {/* Right Column - Customer Details */}
           <div className="lg:col-span-6 xl:col-span-7 h-full min-h-[600px]">
-            <CustomerDetailsPanel rankCount={rankCount} selectedPlatform={selectedPlatform} />
+            <CustomerDetailsPanel
+              rankCount={filters.rankCount}
+              selectedPlatform={filters.selectedPlatform}
+              brandName={filters.brandName}
+            />
           </div>
         </div>
       </main>

@@ -247,31 +247,47 @@ const BrandCombobox: React.FC<{
 };
 
 type FilterPanelProps = {
-  rankCount: number;
-  selectedPlatform: string;
-  onRankCountChange: (value: number) => void;
-  onSelectedPlatformChange: (value: string) => void;
+  filters: {
+    rankCount: number;
+    selectedPlatform: string;
+    brandName: string;
+  };
+  onApplyFilters: (filters: { rankCount: number; selectedPlatform: string; brandName: string }) => void;
 };
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
-  rankCount,
-  selectedPlatform,
-  onRankCountChange,
-  onSelectedPlatformChange,
+  filters,
+  onApplyFilters,
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [startDate, setStartDate] = React.useState(initialStartDate);
   const [endDate, setEndDate] = React.useState(initialEndDate);
-  const [brandName, setBrandName] = React.useState('');
+  const [draftRankCount, setDraftRankCount] = React.useState(filters.rankCount);
+  const [draftBrandName, setDraftBrandName] = React.useState(filters.brandName);
+  const [draftSelectedPlatform, setDraftSelectedPlatform] = React.useState(filters.selectedPlatform);
 
   const previousRange = getPreviousRange(startDate, endDate);
+
+  const applyFilters = () => {
+    onApplyFilters({
+      rankCount: draftRankCount,
+      selectedPlatform: draftSelectedPlatform,
+      brandName: draftBrandName.trim(),
+    });
+    setIsDatePickerOpen(false);
+  };
 
   const resetFilters = () => {
     setStartDate(initialStartDate);
     setEndDate(initialEndDate);
-    onRankCountChange(15);
-    setBrandName('');
-    onSelectedPlatformChange('');
+    setDraftRankCount(15);
+    setDraftBrandName('');
+    setDraftSelectedPlatform('');
+    onApplyFilters({
+      rankCount: 15,
+      selectedPlatform: '',
+      brandName: '',
+    });
     setIsDatePickerOpen(false);
   };
 
@@ -311,8 +327,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         <label className="flex items-center gap-2">
           <span className="font-semibold text-slate-200">排行数量</span>
           <select
-            value={String(rankCount)}
-            onChange={(event) => onRankCountChange(Number(event.target.value))}
+            value={String(draftRankCount)}
+            onChange={(event) => setDraftRankCount(Number(event.target.value))}
             className="h-8 w-[86px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
             <option value="5">5</option>
@@ -323,13 +339,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </label>
 
-        <BrandCombobox value={brandName} onChange={setBrandName} />
+        <BrandCombobox value={draftBrandName} onChange={setDraftBrandName} />
 
         <label className="flex items-center gap-2">
           <span className="font-semibold text-slate-200">平台选择</span>
           <select
-            value={selectedPlatform}
-            onChange={(event) => onSelectedPlatformChange(event.target.value)}
+            value={draftSelectedPlatform}
+            onChange={(event) => setDraftSelectedPlatform(event.target.value)}
             className="h-8 w-[108px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
             <option value=""> </option>
@@ -339,7 +355,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </label>
 
-        <Button type="button" size="sm" className="h-8 gap-1.5 bg-blue-700 px-4 text-xs text-white hover:bg-blue-600">
+        <Button
+          type="button"
+          size="sm"
+          className="h-8 gap-1.5 bg-blue-700 px-4 text-xs text-white hover:bg-blue-600"
+          onClick={applyFilters}
+        >
           <Search className="h-3.5 w-3.5" />
           查询
         </Button>
