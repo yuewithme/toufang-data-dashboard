@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Database, RefreshCcw, Search } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Database, RefreshCcw } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 
@@ -339,17 +339,20 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   const previousRange = getPreviousRange(startDate, endDate);
 
-  const applyFilters = () => {
+  const applyFilterChanges = (nextFilters: Partial<typeof filters>) => {
+    const nextStartDate = nextFilters.startDate ?? startDate;
+    const nextEndDate = nextFilters.endDate ?? endDate;
+    const nextPreviousRange = getPreviousRange(nextStartDate, nextEndDate);
+
     onApplyFilters({
-      rankCount: draftRankCount,
-      selectedPlatform: draftSelectedPlatform,
-      brandName: draftBrandName.trim(),
-      startDate,
-      endDate,
-      previousStartDate: previousRange.start,
-      previousEndDate: previousRange.end,
+      rankCount: nextFilters.rankCount ?? draftRankCount,
+      selectedPlatform: nextFilters.selectedPlatform ?? draftSelectedPlatform,
+      brandName: (nextFilters.brandName ?? draftBrandName).trim(),
+      startDate: nextStartDate,
+      endDate: nextEndDate,
+      previousStartDate: nextPreviousRange.start,
+      previousEndDate: nextPreviousRange.end,
     });
-    setIsDatePickerOpen(false);
   };
 
   const resetFilters = () => {
@@ -397,6 +400,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               onChange={(nextStartDate, nextEndDate) => {
                 setStartDate(nextStartDate);
                 setEndDate(nextEndDate);
+                applyFilterChanges({
+                  startDate: nextStartDate,
+                  endDate: nextEndDate,
+                });
               }}
               onClose={() => setIsDatePickerOpen(false)}
             />
@@ -407,7 +414,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <span className="font-semibold text-slate-200">排行数量</span>
           <select
             value={String(draftRankCount)}
-            onChange={(event) => setDraftRankCount(Number(event.target.value))}
+            onChange={(event) => {
+              const nextRankCount = Number(event.target.value);
+              setDraftRankCount(nextRankCount);
+              applyFilterChanges({ rankCount: nextRankCount });
+            }}
             className="h-8 w-[86px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
             <option value="5">5</option>
@@ -418,13 +429,23 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </label>
 
-        <BrandCombobox value={draftBrandName} onChange={setDraftBrandName} />
+        <BrandCombobox
+          value={draftBrandName}
+          onChange={(nextBrandName) => {
+            setDraftBrandName(nextBrandName);
+            applyFilterChanges({ brandName: nextBrandName });
+          }}
+        />
 
         <label className="flex items-center gap-2">
           <span className="font-semibold text-slate-200">平台选择</span>
           <select
             value={draftSelectedPlatform}
-            onChange={(event) => setDraftSelectedPlatform(event.target.value)}
+            onChange={(event) => {
+              const nextSelectedPlatform = event.target.value;
+              setDraftSelectedPlatform(nextSelectedPlatform);
+              applyFilterChanges({ selectedPlatform: nextSelectedPlatform });
+            }}
             className="h-8 w-[108px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
             <option value=""> </option>
@@ -434,15 +455,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </label>
 
-        <Button
-          type="button"
-          size="sm"
-          className="h-8 gap-1.5 bg-blue-700 px-4 text-xs text-white hover:bg-blue-600"
-          onClick={applyFilters}
-        >
-          <Search className="h-3.5 w-3.5" />
-          查询
-        </Button>
         <Button
           type="button"
           variant="outline"
