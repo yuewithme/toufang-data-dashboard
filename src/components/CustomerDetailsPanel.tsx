@@ -74,13 +74,13 @@ const MetricBlock: React.FC<{
   const compareText = compareType === 'percent' ? formatPercent(percentChange) : formatCompareNumber(change);
 
   return (
-    <div className="rounded-md border border-blue-900/40 bg-[#1b3048] p-3">
-      <div className="text-xs font-bold text-slate-300">{label}</div>
-      <div className="mt-2 flex min-w-0 items-baseline gap-1.5">
-        <span className={`min-w-0 text-xl font-extrabold tabular-nums ${valueClassName}`}>{formatNumber(current)}</span>
-        <span className={`shrink-0 text-sm font-extrabold tabular-nums ${compareTone}`}>{arrow} {compareText}</span>
+    <div className="rounded-md border border-blue-900/40 bg-[#1b3048] p-4">
+      <div className="text-sm font-extrabold text-slate-200">{label}</div>
+      <div className="mt-3 flex min-w-0 items-baseline gap-2">
+        <span className={`min-w-0 text-[26px] font-extrabold leading-none tabular-nums ${valueClassName}`}>{formatNumber(current)}</span>
+        <span className={`shrink-0 text-base font-extrabold tabular-nums ${compareTone}`}>{arrow} {compareText}</span>
       </div>
-      <div className="mt-2 border-t border-slate-700/45 pt-2 text-xs font-bold tabular-nums text-slate-500">
+      <div className="mt-3 border-t border-slate-700/45 pt-2.5 text-sm font-bold tabular-nums text-slate-500">
         上期 {formatNumber(previous)}
       </div>
     </div>
@@ -104,15 +104,15 @@ const PlatformCard: React.FC<{
       className={`flex min-h-0 flex-col overflow-hidden rounded-lg border ${styles.border} ${styles.top} border-t-2 bg-[#152437] shadow-lg shadow-black/20`}
       style={detailFontStyle}
     >
-      <div className="px-4 pb-3 pt-3">
+      <div className="px-4 pb-3.5 pt-3.5">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className={`text-xl font-extrabold ${styles.title}`}>{platform.name}</h3>
-          <span className="rounded-full border border-blue-400/30 bg-blue-500/15 px-2.5 py-1 text-xs font-bold text-blue-100">
+          <h3 className={`text-2xl font-extrabold ${styles.title}`}>{platform.name}</h3>
+          <span className="rounded-full border border-blue-400/30 bg-blue-500/15 px-3 py-1 text-sm font-extrabold text-blue-100">
             TOP {rankedCustomers.length}
           </span>
         </div>
 
-        <div className="grid grid-cols-[1.6fr_0.9fr] gap-3">
+        <div className="grid grid-cols-[1.65fr_0.9fr] gap-3">
           <MetricBlock
             label="本期消耗量"
             current={platform.periodConsumption}
@@ -130,8 +130,8 @@ const PlatformCard: React.FC<{
         </div>
       </div>
 
-      <div className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4 pr-2">
-        <div className="space-y-2 pr-2">
+      <div className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto px-3 pb-3 pr-1.5">
+        <div className="space-y-1.5 pr-2">
           {rankedCustomers.map((customer) => {
             const previousConsumption = customer.previousConsumption ?? 0;
             const change = customer.consumption - previousConsumption;
@@ -142,14 +142,14 @@ const PlatformCard: React.FC<{
             return (
               <div
                 key={customer.name}
-                className={`flex min-h-[92px] flex-col items-start justify-center rounded-md border border-blue-900/25 bg-gradient-to-r ${styles.row} px-4 py-3 shadow-sm shadow-black/10`}
+                className={`flex min-h-[70px] flex-col items-start justify-center rounded-md border border-blue-900/25 bg-gradient-to-r ${styles.row} px-3 py-2 shadow-sm shadow-black/10`}
               >
-                <div className="w-full truncate text-base font-extrabold text-slate-50">{customer.name}</div>
-                <div className={`mt-1 flex w-full items-baseline gap-2 text-2xl font-extrabold tabular-nums ${compareTone}`}>
+                <div className="w-full truncate text-sm font-extrabold text-slate-50">{customer.name}</div>
+                <div className={`mt-0.5 flex w-full items-baseline gap-1.5 text-xl font-extrabold tabular-nums ${compareTone}`}>
                   <span>{formatNumber(customer.consumption)}</span>
-                  <span className="text-base font-extrabold">{arrow} {formatPercent(percentChange)}</span>
+                  <span className="text-sm font-extrabold">{arrow} {formatPercent(percentChange)}</span>
                 </div>
-                <div className="mt-1 text-xs font-bold tabular-nums text-slate-500">上期 {formatNumber(previousConsumption)}</div>
+                <div className="mt-0.5 text-[11px] font-bold tabular-nums text-slate-500">上期 {formatNumber(previousConsumption)}</div>
               </div>
             );
           })}
