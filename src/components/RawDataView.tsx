@@ -63,26 +63,40 @@ const createEmptyFormValues = (selectedPlatform?: string): RecordFormValues => (
 
 const toNumber = (value: string) => Number(value.replace(/,/g, '').trim());
 
+const filterRawRows = (rawRows: RawSourceDataRow[], filters: DateRangeFilters) => {
+  const normalizedBrandName = filters.brandName?.trim() ?? '';
+
+  return rawRows
+    .filter((row) => row.customerGroup.includes('代投'))
+    .filter((row) => row.consumeDate >= filters.startDate)
+    .filter((row) => row.consumeDate <= filters.endDate)
+    .filter((row) => !filters.selectedPlatform || row.platform === filters.selectedPlatform)
+    .filter((row) => !normalizedBrandName || row.brandName.includes(normalizedBrandName))
+    .sort((a, b) => {
+      if (a.consumeDate !== b.consumeDate) return b.consumeDate.localeCompare(a.consumeDate);
+      if (a.platform !== b.platform) return a.platform.localeCompare(b.platform);
+      return b.nonGiftConsumption - a.nonGiftConsumption;
+    });
+};
+
 export const RawDataView: React.FC<{
   filters: DateRangeFilters;
   onBack: () => void;
 }> = ({ filters, onBack }) => {
-  const sourceRows = React.useMemo(() => getRawSourceRows(filters), [filters]);
-  const [rawRows, setRawRows] = React.useState<RawSourceDataRow[]>(sourceRows);
+  const [rawRows, setRawRows] = React.useState<RawSourceDataRow[]>(() => getRawSourceRows());
   const [selectedRowIds, setSelectedRowIds] = React.useState<Set<string>>(() => new Set());
   const [actionHint, setActionHint] = React.useState('请选择需要操作的原始数据记录');
   const [recordDialog, setRecordDialog] = React.useState<RecordDialogState>(null);
-  const rows = React.useMemo(() => rawRows.filter((row) => row.customerGroup.includes('代投')), [rawRows]);
+  const rows = React.useMemo(() => filterRawRows(rawRows, filters), [rawRows, filters]);
   const selectedCount = selectedRowIds.size;
   const allRowsSelected = rows.length > 0 && selectedCount === rows.length;
   const selectedRows = React.useMemo(() => rows.filter((row) => selectedRowIds.has(getRowId(row))), [rows, selectedRowIds]);
 
   React.useEffect(() => {
-    setRawRows(sourceRows);
     setSelectedRowIds(new Set());
-    setActionHint('筛选条件已更新，请重新选择需要操作的记录');
+    setActionHint('筛选条件已更新，原始数据表变更已保留');
     setRecordDialog(null);
-  }, [sourceRows]);
+  }, [filters]);
 
   const toggleAllRows = () => {
     if (allRowsSelected) {
