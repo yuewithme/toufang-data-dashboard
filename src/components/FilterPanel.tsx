@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCcw, Search } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Database, RefreshCcw, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 
@@ -322,11 +322,13 @@ type FilterPanelProps = {
     previousStartDate: string;
     previousEndDate: string;
   }) => void;
+  onOpenRawData: () => void;
 };
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
   filters,
   onApplyFilters,
+  onOpenRawData,
 }) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [startDate, setStartDate] = React.useState(initialStartDate);
@@ -450,6 +452,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         >
           <RefreshCcw className="h-3.5 w-3.5" />
           重置
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 border-blue-500/50 bg-blue-500/10 px-4 text-xs font-bold text-blue-100 hover:bg-blue-500/20"
+          onClick={onOpenRawData}
+        >
+          <Database className="h-3.5 w-3.5" />
+          原始数据
         </Button>
       </div>
 

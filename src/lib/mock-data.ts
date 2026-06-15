@@ -59,6 +59,24 @@ export type DateRangeFilters = {
   brandName?: string;
 };
 
+export interface RawSourceDataRow {
+  customerAccountId: string;
+  customerAccountName: string;
+  brandName: string;
+  companyEntity: string;
+  agencyAccountName: string;
+  customerGroup: string;
+  nonGiftConsumption: number;
+  brandAdGroup: number;
+  biddingAdGroup: number;
+  giftConsumption: number;
+  returnPointTotal: number;
+  returnPointCash: number;
+  remark: string;
+  consumeDate: string;
+  platform: string;
+}
+
 const customerNames = [
   "猫小乐", "海氏Hauswirt", "造物者CREATOR", "NOJI个护", "舒芙茵", "BABI", "Girlcult构奇", "DPDP", "三资堂CENSTO",
   "法芮森洗护", "一只驴屎官", "小聪明兜兜", "植场大师日用", "Evers", "咖皇", "诚实的薯薯", "女儿红酱酒",
@@ -313,15 +331,92 @@ const getDailyConsumption = (baseConsumption: number, platform: string, customer
   return Math.round((baseConsumption * platformMultiplier * getCustomerFactor(customerName, dateKey)) / 1000) * 1000;
 };
 
+const sourceDateKeys = Object.keys(platformDailyMultipliers).sort();
+
+const platformAgencyAccount: Record<string, string> = {
+  "小红书": "小红书聚光乘风账户",
+  "视频号": "视频号磁力投放账户",
+  "支付宝": "支付宝数字营销账户",
+};
+
+const platformCompanyEntity: Record<string, string> = {
+  "小红书": "杭州沃虎网络科技有限公司",
+  "视频号": "杭州沃虎科技有限公司",
+  "支付宝": "杭州沃虎数智营销有限公司",
+};
+
+const getStableSeed = (value: string) => Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+const createMockSourceRows = (): RawSourceDataRow[] => {
+  return mockDashboardData.platformPerformance.flatMap((platform) =>
+    sourceDateKeys.flatMap((dateKey) =>
+      platform.customers.map((customer, customerIndex) => {
+        const seed = getStableSeed(`${platform.name}${customer.name}${dateKey}`);
+        const grossConsumption = getDailyConsumption(customer.consumption, platform.name, customer.name, dateKey);
+        const hasGiftConsumption = seed % 6 === 0;
+        const giftConsumption = hasGiftConsumption ? Math.round(grossConsumption * 0.08) : 0;
+        const nonGiftConsumption = Math.max(grossConsumption - giftConsumption, 0);
+
+        return {
+          customerAccountId: `${dateKey.replace(/-/g, "")}${String(customerIndex + 1).padStart(4, "0")}${seed}`,
+          customerAccountName: `沃虎-${customer.name}`,
+          brandName: customer.name,
+          companyEntity: platformCompanyEntity[platform.name] ?? "杭州沃虎科技有限公司",
+          agencyAccountName: platformAgencyAccount[platform.name] ?? `${platform.name}投放账户`,
+          customerGroup: `沃虎&${customer.name}${platform.name}对接群`,
+          nonGiftConsumption,
+          brandAdGroup: seed % 3 === 0 ? 1 : 0,
+          biddingAdGroup: seed % 4 === 0 ? 1 : 0,
+          giftConsumption,
+          returnPointTotal: roundMoney(1.15 + (seed % 8) / 100),
+          returnPointCash: 1,
+          remark: seed % 5 === 0 ? "重点跟进" : "",
+          consumeDate: dateKey,
+          platform: platform.name,
+        };
+      }),
+    ),
+  );
+};
+
+export const mockSourceRows: RawSourceDataRow[] = createMockSourceRows();
+
+export const getRawSourceRows = (filters?: Partial<DateRangeFilters>) => {
+  const normalizedBrandName = filters?.brandName?.trim() ?? "";
+
+  return mockSourceRows
+    .filter((row) => !filters?.startDate || row.consumeDate >= filters.startDate)
+    .filter((row) => !filters?.endDate || row.consumeDate <= filters.endDate)
+    .filter((row) => !filters?.selectedPlatform || row.platform === filters.selectedPlatform)
+    .filter((row) => !normalizedBrandName || row.brandName.includes(normalizedBrandName))
+    .sort((a, b) => {
+      if (a.consumeDate !== b.consumeDate) return b.consumeDate.localeCompare(a.consumeDate);
+      if (a.platform !== b.platform) return a.platform.localeCompare(b.platform);
+      return (b.nonGiftConsumption + b.giftConsumption) - (a.nonGiftConsumption + a.giftConsumption);
+    });
+};
+
+const getTotalConsumption = (row: RawSourceDataRow) => row.nonGiftConsumption + row.giftConsumption;
+
 const aggregatePlatformCustomers = (platform: PlatformPerformance, dates: string[], brandName = "") => {
   const normalizedBrandName = brandName.trim();
+  const dateSet = new Set(dates);
+  const rows = mockSourceRows.filter((row) =>
+    row.platform === platform.name &&
+    dateSet.has(row.consumeDate) &&
+    (!normalizedBrandName || row.brandName.includes(normalizedBrandName)),
+  );
+  const consumptionByBrand = new Map<string, number>();
 
-  return platform.customers
-    .filter((customer) => !normalizedBrandName || customer.name.includes(normalizedBrandName))
-    .map((customer) => ({
-      name: customer.name,
-      consumption: dates.reduce((total, dateKey) => total + getDailyConsumption(customer.consumption, platform.name, customer.name, dateKey), 0),
-    }))
+  rows.forEach((row) => {
+    consumptionByBrand.set(row.brandName, (consumptionByBrand.get(row.brandName) ?? 0) + getTotalConsumption(row));
+  });
+
+  return Array.from(consumptionByBrand.entries())
+    .map(([name, consumption]) => ({ name, consumption }))
+    .sort((a, b) => b.consumption - a.consumption)
     .filter((customer) => customer.consumption > 0);
 };
 

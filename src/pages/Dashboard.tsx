@@ -3,6 +3,7 @@ import { DashboardHeader } from '../components/DashboardHeader';
 import { FilterPanel } from '../components/FilterPanel';
 import { TaskCompletionPanel } from '../components/TaskCompletionPanel';
 import { CustomerDetailsPanel } from '../components/CustomerDetailsPanel';
+import { RawDataView } from '../components/RawDataView';
 import { buildDashboardData } from '../lib/mock-data';
 
 const getDateKey = (offsetDays: number) => {
@@ -15,6 +16,7 @@ const getDateKey = (offsetDays: number) => {
 };
 
 const Dashboard: React.FC = () => {
+  const [viewMode, setViewMode] = React.useState<'dashboard' | 'raw'>('dashboard');
   const [filters, setFilters] = React.useState({
     rankCount: 15,
     selectedPlatform: '',
@@ -32,26 +34,31 @@ const Dashboard: React.FC = () => {
       <FilterPanel
         filters={filters}
         onApplyFilters={setFilters}
+        onOpenRawData={() => setViewMode('raw')}
       />
-      
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
-        <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Left Column - Task Completion */}
-          <div className="lg:col-span-5 xl:col-span-4">
-            <TaskCompletionPanel data={dashboardData} />
-          </div>
 
-          {/* Right Column - Customer Details */}
-          <div className="lg:col-span-7 xl:col-span-8 h-full min-h-[600px]">
-            <CustomerDetailsPanel
-              rankCount={filters.rankCount}
-              selectedPlatform={filters.selectedPlatform}
-              brandName={filters.brandName}
-              data={dashboardData}
-            />
+      {viewMode === 'raw' ? (
+        <RawDataView filters={filters} onBack={() => setViewMode('dashboard')} />
+      ) : (
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
+          <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-12">
+            {/* Left Column - Task Completion */}
+            <div className="lg:col-span-5 xl:col-span-4">
+              <TaskCompletionPanel data={dashboardData} />
+            </div>
+
+            {/* Right Column - Customer Details */}
+            <div className="lg:col-span-7 xl:col-span-8 h-full min-h-[600px]">
+              <CustomerDetailsPanel
+                rankCount={filters.rankCount}
+                selectedPlatform={filters.selectedPlatform}
+                brandName={filters.brandName}
+                data={dashboardData}
+              />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      )}
 
       {/* Footer / Status Bar */}
       <footer className="h-8 bg-[#0d0d1d] border-t border-slate-800 flex items-center justify-between px-6 text-[10px] text-slate-500 shrink-0">
