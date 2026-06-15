@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
       />
       
       <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
-        <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+        <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Left Column - Task Completion */}
           <div className="lg:col-span-5 xl:col-span-4">
             <TaskCompletionPanel />

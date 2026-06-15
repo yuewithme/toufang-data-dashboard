@@ -111,7 +111,7 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
             <div className="flex items-baseline gap-3">
               <span className={`text-3xl font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
               {stat.compare && (
-                <span className={`text-3xl font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
+                <span className={`text-[21px] font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
                   {isUp ? '↑' : isDown ? '↓' : '→'} {stat.compare.text}
                 </span>
               )}
