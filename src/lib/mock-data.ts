@@ -9,6 +9,7 @@ export interface TopListItem {
 export interface PlatformCustomerItem {
   name: string;
   consumption: number;
+  previousConsumption?: number;
 }
 
 export interface PlatformPerformance {
@@ -48,6 +49,13 @@ export interface DashboardData {
   }[];
   platformPerformance: PlatformPerformance[];
 }
+
+export type DateRangeFilters = {
+  startDate: string;
+  endDate: string;
+  previousStartDate: string;
+  previousEndDate: string;
+};
 
 const customerNames = [
   "猫小乐", "海氏Hauswirt", "造物者CREATOR", "NOJI个护", "舒芙茵", "BABI", "Girlcult构奇", "DPDP", "三资堂CENSTO",
@@ -239,4 +247,128 @@ export const mockDashboardData: DashboardData = {
       ]
     }
   ]
+};
+
+const platformDailyMultipliers: Record<string, Record<string, number>> = {
+  "2026-06-13": {
+    "小红书": 0.92,
+    "视频号": 1.08,
+    "支付宝": 0.96,
+  },
+  "2026-06-14": {
+    "小红书": 1,
+    "视频号": 1,
+    "支付宝": 1,
+  },
+  // 变更原因：需要支持今天和明天的日期选择联动，这里先用稳定 mock 倍率模拟不同日期的数据波动。
+  "2026-06-15": {
+    "小红书": 1.16,
+    "视频号": 0.88,
+    "支付宝": 1.24,
+  },
+  "2026-06-16": {
+    "小红书": 0.81,
+    "视频号": 1.31,
+    "支付宝": 1.12,
+  },
+};
+
+const toDate = (dateKey: string) => {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const toDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getRangeDates = (startDate: string, endDate: string) => {
+  const start = toDate(startDate);
+  const end = toDate(endDate);
+  const dates: string[] = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    dates.push(toDateKey(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return dates;
+};
+
+const getCustomerFactor = (name: string, dateKey: string) => {
+  const seed = Array.from(`${name}${dateKey}`).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return 0.86 + (seed % 29) / 100;
+};
+
+const getDailyConsumption = (baseConsumption: number, platform: string, customerName: string, dateKey: string) => {
+  const platformMultiplier = platformDailyMultipliers[dateKey]?.[platform] ?? 0;
+  if (platformMultiplier === 0) return 0;
+
+  return Math.round((baseConsumption * platformMultiplier * getCustomerFactor(customerName, dateKey)) / 1000) * 1000;
+};
+
+const aggregatePlatformCustomers = (platform: PlatformPerformance, dates: string[]) => {
+  return platform.customers
+    .map((customer) => ({
+      name: customer.name,
+      consumption: dates.reduce((total, dateKey) => total + getDailyConsumption(customer.consumption, platform.name, customer.name, dateKey), 0),
+    }))
+    .filter((customer) => customer.consumption > 0);
+};
+
+export const buildDashboardData = (filters: DateRangeFilters): DashboardData => {
+  const periodDates = getRangeDates(filters.startDate, filters.endDate);
+  const previousDates = getRangeDates(filters.previousStartDate, filters.previousEndDate);
+  const dayCount = Math.max(periodDates.length, 1);
+  const previousDayCount = Math.max(previousDates.length, 1);
+
+  const platformPerformance = mockDashboardData.platformPerformance.map((platform) => {
+    const currentCustomers = aggregatePlatformCustomers(platform, periodDates);
+    const previousCustomers = aggregatePlatformCustomers(platform, previousDates);
+    const previousByName = new Map(previousCustomers.map((customer) => [customer.name, customer.consumption]));
+    const currentWithPrevious = currentCustomers.map((customer) => ({
+      ...customer,
+      previousConsumption: previousByName.get(customer.name) ?? 0,
+    }));
+
+    return {
+      ...platform,
+      periodConsumption: currentWithPrevious.reduce((total, customer) => total + customer.consumption, 0),
+      periodCustomers: currentWithPrevious.length,
+      customers: currentWithPrevious,
+    };
+  });
+
+  const previousPlatformPerformance = mockDashboardData.platformPerformance.map((platform) => {
+    const customers = aggregatePlatformCustomers(platform, previousDates);
+
+    return {
+      ...platform,
+      periodConsumption: customers.reduce((total, customer) => total + customer.consumption, 0),
+      periodCustomers: customers.length,
+      customers,
+    };
+  });
+
+  const periodConsumption = platformPerformance.reduce((total, platform) => total + platform.periodConsumption, 0);
+  const previousPeriodConsumption = previousPlatformPerformance.reduce((total, platform) => total + platform.periodConsumption, 0);
+  const periodCustomers = platformPerformance.reduce((total, platform) => total + platform.periodCustomers, 0);
+  const previousPeriodCustomers = previousPlatformPerformance.reduce((total, platform) => total + platform.periodCustomers, 0);
+
+  return {
+    ...mockDashboardData,
+    periodConsumption,
+    previousPeriodConsumption,
+    periodAverageConsumption: Math.round(periodConsumption / dayCount),
+    previousPeriodAverageConsumption: Math.round(previousPeriodConsumption / previousDayCount),
+    periodCustomers,
+    previousPeriodCustomers,
+    periodAverageCustomers: Math.round(periodCustomers / dayCount),
+    previousPeriodAverageCustomers: Math.round(previousPeriodCustomers / previousDayCount),
+    platformPerformance,
+  };
 };

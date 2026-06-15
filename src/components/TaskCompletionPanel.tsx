@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from './ui/card';
-import { mockDashboardData } from '../lib/mock-data';
+import { DashboardData } from '../lib/mock-data';
 
 const formatNumber = (value: number) => value.toLocaleString('en-US');
 
@@ -23,71 +23,71 @@ type StatCard = {
   };
 };
 
-const consumptionStats: StatCard[] = [
+const getConsumptionStats = (data: DashboardData): StatCard[] => [
   {
     label: '本期总消耗',
-    value: mockDashboardData.periodConsumption,
+    value: data.periodConsumption,
     tone: 'text-blue-400',
     compare: {
-      value: getPercentChange(mockDashboardData.periodConsumption, mockDashboardData.previousPeriodConsumption),
-      text: formatComparePercent(getPercentChange(mockDashboardData.periodConsumption, mockDashboardData.previousPeriodConsumption)),
+      value: getPercentChange(data.periodConsumption, data.previousPeriodConsumption),
+      text: formatComparePercent(getPercentChange(data.periodConsumption, data.previousPeriodConsumption)),
     },
     className: 'border-blue-900/40 bg-[#172437]',
   },
   {
     label: '上期总消耗',
-    value: mockDashboardData.previousPeriodConsumption,
+    value: data.previousPeriodConsumption,
     tone: 'text-amber-400',
     className: 'border-amber-900/30 bg-[#1d2031]',
   },
   {
     label: '本期日均消耗',
-    value: mockDashboardData.periodAverageConsumption,
+    value: data.periodAverageConsumption,
     tone: 'text-emerald-400',
     compare: {
-      value: getPercentChange(mockDashboardData.periodAverageConsumption, mockDashboardData.previousPeriodAverageConsumption),
-      text: formatComparePercent(getPercentChange(mockDashboardData.periodAverageConsumption, mockDashboardData.previousPeriodAverageConsumption)),
+      value: getPercentChange(data.periodAverageConsumption, data.previousPeriodAverageConsumption),
+      text: formatComparePercent(getPercentChange(data.periodAverageConsumption, data.previousPeriodAverageConsumption)),
     },
     className: 'border-emerald-900/30 bg-[#142d34]',
   },
   {
     label: '上期日均消耗',
-    value: mockDashboardData.previousPeriodAverageConsumption,
+    value: data.previousPeriodAverageConsumption,
     tone: 'text-slate-100',
     className: 'border-slate-800 bg-[#161827]',
   },
 ];
 
-const customerStats: StatCard[] = [
+const getCustomerStats = (data: DashboardData): StatCard[] => [
   {
     label: '本期客户量',
-    value: mockDashboardData.periodCustomers,
+    value: data.periodCustomers,
     tone: 'text-cyan-300',
     compare: {
-      value: mockDashboardData.periodCustomers - mockDashboardData.previousPeriodCustomers,
-      text: formatCompareNumber(mockDashboardData.periodCustomers - mockDashboardData.previousPeriodCustomers),
+      value: data.periodCustomers - data.previousPeriodCustomers,
+      text: formatCompareNumber(data.periodCustomers - data.previousPeriodCustomers),
     },
     className: 'border-cyan-900/40 bg-[#102436]',
   },
   {
     label: '上期客户量',
-    value: mockDashboardData.previousPeriodCustomers,
+    value: data.previousPeriodCustomers,
     tone: 'text-violet-300',
     className: 'border-violet-900/30 bg-[#1c1b32]',
   },
   {
     label: '本期日均客户',
-    value: mockDashboardData.periodAverageCustomers,
+    value: data.periodAverageCustomers,
     tone: 'text-lime-300',
     compare: {
-      value: mockDashboardData.periodAverageCustomers - mockDashboardData.previousPeriodAverageCustomers,
-      text: formatCompareNumber(mockDashboardData.periodAverageCustomers - mockDashboardData.previousPeriodAverageCustomers),
+      value: data.periodAverageCustomers - data.previousPeriodAverageCustomers,
+      text: formatCompareNumber(data.periodAverageCustomers - data.previousPeriodAverageCustomers),
     },
     className: 'border-lime-900/30 bg-[#152b25]',
   },
   {
     label: '上期日均客户',
-    value: mockDashboardData.previousPeriodAverageCustomers,
+    value: data.previousPeriodAverageCustomers,
     tone: 'text-slate-100',
     className: 'border-slate-800 bg-[#171827]',
   },
@@ -123,17 +123,17 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
   </div>
 );
 
-export const TaskCompletionPanel: React.FC = () => {
+export const TaskCompletionPanel: React.FC<{ data: DashboardData }> = ({ data }) => {
   return (
     <div className="flex flex-col gap-5">
       <section className="flex flex-col gap-4">
         <h2 className="px-1 text-sm font-medium text-slate-400">消耗数据统计</h2>
-        <StatGrid items={consumptionStats} />
+        <StatGrid items={getConsumptionStats(data)} />
       </section>
 
       <section className="flex flex-col gap-4">
         <h2 className="px-1 text-sm font-medium text-slate-400">客户数据统计</h2>
-        <StatGrid items={customerStats} />
+        <StatGrid items={getCustomerStats(data)} />
       </section>
     </div>
   );

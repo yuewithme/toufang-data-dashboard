@@ -3,13 +3,28 @@ import { DashboardHeader } from '../components/DashboardHeader';
 import { FilterPanel } from '../components/FilterPanel';
 import { TaskCompletionPanel } from '../components/TaskCompletionPanel';
 import { CustomerDetailsPanel } from '../components/CustomerDetailsPanel';
+import { buildDashboardData } from '../lib/mock-data';
+
+const getDateKey = (offsetDays: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const Dashboard: React.FC = () => {
   const [filters, setFilters] = React.useState({
     rankCount: 15,
     selectedPlatform: '',
     brandName: '',
+    startDate: getDateKey(-1),
+    endDate: getDateKey(-1),
+    previousStartDate: getDateKey(-2),
+    previousEndDate: getDateKey(-2),
   });
+  const dashboardData = React.useMemo(() => buildDashboardData(filters), [filters]);
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0a1a] text-slate-50 overflow-hidden">
@@ -23,7 +38,7 @@ const Dashboard: React.FC = () => {
         <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Left Column - Task Completion */}
           <div className="lg:col-span-5 xl:col-span-4">
-            <TaskCompletionPanel />
+            <TaskCompletionPanel data={dashboardData} />
           </div>
 
           {/* Right Column - Customer Details */}
@@ -32,6 +47,7 @@ const Dashboard: React.FC = () => {
               rankCount={filters.rankCount}
               selectedPlatform={filters.selectedPlatform}
               brandName={filters.brandName}
+              data={dashboardData}
             />
           </div>
         </div>

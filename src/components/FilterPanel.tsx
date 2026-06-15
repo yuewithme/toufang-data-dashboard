@@ -251,8 +251,20 @@ type FilterPanelProps = {
     rankCount: number;
     selectedPlatform: string;
     brandName: string;
+    startDate: string;
+    endDate: string;
+    previousStartDate: string;
+    previousEndDate: string;
   };
-  onApplyFilters: (filters: { rankCount: number; selectedPlatform: string; brandName: string }) => void;
+  onApplyFilters: (filters: {
+    rankCount: number;
+    selectedPlatform: string;
+    brandName: string;
+    startDate: string;
+    endDate: string;
+    previousStartDate: string;
+    previousEndDate: string;
+  }) => void;
 };
 
 export const FilterPanel: React.FC<FilterPanelProps> = ({
@@ -273,6 +285,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       rankCount: draftRankCount,
       selectedPlatform: draftSelectedPlatform,
       brandName: draftBrandName.trim(),
+      startDate,
+      endDate,
+      previousStartDate: previousRange.start,
+      previousEndDate: previousRange.end,
     });
     setIsDatePickerOpen(false);
   };
@@ -287,6 +303,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       rankCount: 15,
       selectedPlatform: '',
       brandName: '',
+      startDate: initialStartDate,
+      endDate: initialEndDate,
+      previousStartDate: getPreviousRange(initialStartDate, initialEndDate).start,
+      previousEndDate: getPreviousRange(initialStartDate, initialEndDate).end,
     });
     setIsDatePickerOpen(false);
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { mockDashboardData, PlatformCustomerItem, PlatformPerformance } from '../lib/mock-data';
+import { DashboardData, PlatformCustomerItem, PlatformPerformance } from '../lib/mock-data';
 
 const accentStyles = {
   red: {
@@ -43,12 +43,6 @@ const formatNumber = (value: number) => value.toLocaleString('en-US');
 
 const detailFontStyle = {
   fontFamily: '"Inter", "DIN Alternate", "Microsoft YaHei", "PingFang SC", sans-serif',
-};
-
-const getPreviousConsumption = (customer: PlatformCustomerItem) => {
-  const ratios = [0.88, 1.12, 1, 0.94, 1.08, 0.82, 1.18];
-  const seed = Array.from(customer.name).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return Math.round((customer.consumption * ratios[seed % ratios.length]) / 1000) * 1000;
 };
 
 const getCompareTone = (change: number) => {
@@ -107,7 +101,7 @@ const PlatformCard: React.FC<{
       <div className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4 pr-2">
         <div className="space-y-2 pr-2">
           {rankedCustomers.map((customer) => {
-            const previousConsumption = getPreviousConsumption(customer);
+            const previousConsumption = customer.previousConsumption ?? 0;
             const change = customer.consumption - previousConsumption;
             const percentChange = getPercentChange(customer.consumption, previousConsumption);
             const compareTone = getCompareTone(change);
@@ -134,14 +128,15 @@ const PlatformCard: React.FC<{
 };
 
 export const CustomerDetailsPanel: React.FC<{
+  data: DashboardData;
   rankCount: number;
   selectedPlatform: string;
   brandName: string;
-}> = ({ rankCount, selectedPlatform, brandName }) => {
+}> = ({ data, rankCount, selectedPlatform, brandName }) => {
   const normalizedBrandName = brandName.trim();
   const visiblePlatforms = selectedPlatform
-    ? mockDashboardData.platformPerformance.filter((platform) => platform.name === selectedPlatform)
-    : mockDashboardData.platformPerformance;
+    ? data.platformPerformance.filter((platform) => platform.name === selectedPlatform)
+    : data.platformPerformance;
   const platformViews = visiblePlatforms
     .map((platform) => ({
       platform,
