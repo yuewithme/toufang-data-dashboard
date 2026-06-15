@@ -41,9 +41,11 @@ const accentStyles = {
 
 const formatNumber = (value: number) => value.toLocaleString('en-US');
 
-const PlatformCard: React.FC<{ platform: PlatformPerformance }> = ({ platform }) => {
+const PlatformCard: React.FC<{ platform: PlatformPerformance; rankCount: number }> = ({ platform, rankCount }) => {
   const styles = accentStyles[platform.accentColor];
-  const sortedCustomers = [...platform.customers].sort((a, b) => b.consumption - a.consumption);
+  const rankedCustomers = [...platform.customers]
+    .sort((a, b) => b.consumption - a.consumption)
+    .slice(0, rankCount);
 
   return (
     <section className={`flex min-h-0 flex-col overflow-hidden rounded-lg border ${styles.border} ${styles.top} border-t-2 bg-[#152437] shadow-lg shadow-black/20`}>
@@ -51,7 +53,7 @@ const PlatformCard: React.FC<{ platform: PlatformPerformance }> = ({ platform })
         <div className="mb-4 flex items-center justify-between">
           <h3 className={`text-base font-bold ${styles.title}`}>{platform.name}</h3>
           <span className="rounded-full border border-blue-400/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-200">
-            TOP {sortedCustomers.length}
+            TOP {rankedCustomers.length}
           </span>
         </div>
 
@@ -75,7 +77,7 @@ const PlatformCard: React.FC<{ platform: PlatformPerformance }> = ({ platform })
 
       <div className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4 pr-2">
         <div className="space-y-2 pr-2">
-          {sortedCustomers.map((customer, index) => (
+          {rankedCustomers.map((customer, index) => (
             <div
               key={customer.name}
               className={`flex min-h-11 items-center gap-3 rounded-md border border-blue-900/25 bg-gradient-to-r ${styles.row} px-3 py-2 text-xs shadow-sm shadow-black/10`}
@@ -91,16 +93,23 @@ const PlatformCard: React.FC<{ platform: PlatformPerformance }> = ({ platform })
   );
 };
 
-export const CustomerDetailsPanel: React.FC = () => {
+export const CustomerDetailsPanel: React.FC<{
+  rankCount: number;
+  selectedPlatform: string;
+}> = ({ rankCount, selectedPlatform }) => {
+  const visiblePlatforms = selectedPlatform
+    ? mockDashboardData.platformPerformance.filter((platform) => platform.name === selectedPlatform)
+    : mockDashboardData.platformPerformance;
+
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="px-1">
         <h2 className="text-sm font-medium text-slate-400">客户明细</h2>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-3 gap-3 overflow-hidden">
-        {mockDashboardData.platformPerformance.map((platform) => (
-          <PlatformCard key={platform.name} platform={platform} />
+      <div className={`grid min-h-0 flex-1 gap-3 overflow-hidden ${visiblePlatforms.length === 1 ? 'grid-cols-1' : 'grid-cols-3'}`}>
+        {visiblePlatforms.map((platform) => (
+          <PlatformCard key={platform.name} platform={platform} rankCount={rankCount} />
         ))}
       </div>
     </div>

@@ -239,14 +239,24 @@ const BrandCombobox: React.FC<{
   );
 };
 
-export const FilterPanel: React.FC = () => {
+type FilterPanelProps = {
+  rankCount: number;
+  selectedPlatform: string;
+  onRankCountChange: (value: number) => void;
+  onSelectedPlatformChange: (value: string) => void;
+};
+
+export const FilterPanel: React.FC<FilterPanelProps> = ({
+  rankCount,
+  selectedPlatform,
+  onRankCountChange,
+  onSelectedPlatformChange,
+}) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [startDate, setStartDate] = React.useState(initialStartDate);
   const [endDate, setEndDate] = React.useState(initialEndDate);
   const [compareType, setCompareType] = React.useState('环比');
-  const [rankCount, setRankCount] = React.useState('5');
   const [brandName, setBrandName] = React.useState('');
-  const [consumptionType, setConsumptionType] = React.useState('');
 
   const previousRange = getPreviousRange(startDate, endDate);
 
@@ -254,9 +264,9 @@ export const FilterPanel: React.FC = () => {
     setStartDate(initialStartDate);
     setEndDate(initialEndDate);
     setCompareType('环比');
-    setRankCount('5');
+    onRankCountChange(15);
     setBrandName('');
-    setConsumptionType('');
+    onSelectedPlatformChange('');
     setIsDatePickerOpen(false);
   };
 
@@ -308,12 +318,13 @@ export const FilterPanel: React.FC = () => {
         <label className="flex items-center gap-2">
           <span className="font-semibold text-slate-200">排行数量</span>
           <select
-            value={rankCount}
-            onChange={(event) => setRankCount(event.target.value)}
+            value={String(rankCount)}
+            onChange={(event) => onRankCountChange(Number(event.target.value))}
             className="h-8 w-[86px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
             <option value="5">5</option>
             <option value="10">10</option>
+            <option value="15">15</option>
             <option value="20">20</option>
             <option value="30">30</option>
           </select>
@@ -322,13 +333,13 @@ export const FilterPanel: React.FC = () => {
         <BrandCombobox value={brandName} onChange={setBrandName} />
 
         <label className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200">消耗类型</span>
+          <span className="font-semibold text-slate-200">平台选择</span>
           <select
-            value={consumptionType}
-            onChange={(event) => setConsumptionType(event.target.value)}
+            value={selectedPlatform}
+            onChange={(event) => onSelectedPlatformChange(event.target.value)}
             className="h-8 w-[108px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
-            <option value="">请选择</option>
+            <option value=""> </option>
             <option value="小红书">小红书</option>
             <option value="视频号">视频号</option>
             <option value="支付宝">支付宝</option>

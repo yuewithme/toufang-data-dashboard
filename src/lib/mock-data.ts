@@ -143,7 +143,23 @@ export const mockDashboardData: DashboardData = {
         { name: "橙光生活", consumption: 256000 },
         { name: "启航旅游", consumption: 218000 },
         { name: "初见服饰", consumption: 176000 },
-        { name: "元启食品", consumption: 143000 }
+        { name: "元启食品", consumption: 143000 },
+        { name: "漫野户外", consumption: 112000 },
+        { name: "七月花艺", consumption: 98000 },
+        { name: "澄心母婴", consumption: 86000 },
+        { name: "谷雨个护", consumption: 79000 },
+        { name: "拾光摄影", consumption: 73000 },
+        { name: "清禾服饰", consumption: 68000 },
+        { name: "南枝家纺", consumption: 62000 },
+        { name: "鲸选食品", consumption: 57000 },
+        { name: "青藤教育", consumption: 52000 },
+        { name: "星悦美甲", consumption: 47000 },
+        { name: "本初茶饮", consumption: 42000 },
+        { name: "知夏运动", consumption: 38000 },
+        { name: "乐眠家居", consumption: 33000 },
+        { name: "晴屿旅行", consumption: 29000 },
+        { name: "云杉数码", consumption: 24000 },
+        { name: "微澜生活", consumption: 19000 }
       ]
     },
     {
@@ -165,7 +181,23 @@ export const mockDashboardData: DashboardData = {
         { name: "长风数码", consumption: 21000 },
         { name: "喜禾餐饮", consumption: 18000 },
         { name: "觅光摄影", consumption: 16000 },
-        { name: "万象商贸", consumption: 13000 }
+        { name: "万象商贸", consumption: 13000 },
+        { name: "悦动健身", consumption: 12000 },
+        { name: "松果亲子", consumption: 11000 },
+        { name: "青云教育", consumption: 10000 },
+        { name: "云里花店", consumption: 9500 },
+        { name: "北岸家居", consumption: 9000 },
+        { name: "橙意传媒", consumption: 8500 },
+        { name: "乐活食品", consumption: 8000 },
+        { name: "明日出行", consumption: 7600 },
+        { name: "白鹿服装", consumption: 7200 },
+        { name: "海岚美妆", consumption: 6800 },
+        { name: "一禾母婴", consumption: 6400 },
+        { name: "星途科技", consumption: 6000 },
+        { name: "风禾餐饮", consumption: 5600 },
+        { name: "浅草护理", consumption: 5200 },
+        { name: "知野户外", consumption: 4800 },
+        { name: "木棉生活", consumption: 4400 }
       ]
     },
     {
@@ -187,7 +219,23 @@ export const mockDashboardData: DashboardData = {
         { name: "晴川教育", consumption: 19000 },
         { name: "北辰汽车", consumption: 17000 },
         { name: "银杏护理", consumption: 15000 },
-        { name: "星野露营", consumption: 12000 }
+        { name: "星野露营", consumption: 12000 },
+        { name: "深蓝数科", consumption: 11000 },
+        { name: "云帆保险", consumption: 10000 },
+        { name: "知行培训", consumption: 9300 },
+        { name: "海棠医美", consumption: 8700 },
+        { name: "晨星母婴", consumption: 8100 },
+        { name: "柏悦家居", consumption: 7500 },
+        { name: "林间咖啡", consumption: 7000 },
+        { name: "蓝桥出行", consumption: 6600 },
+        { name: "向阳公益", consumption: 6200 },
+        { name: "云朵摄影", consumption: 5800 },
+        { name: "正和法务", consumption: 5400 },
+        { name: "小满零售", consumption: 5000 },
+        { name: "青柚教育", consumption: 4600 },
+        { name: "新岸健康", consumption: 4200 },
+        { name: "朗月家政", consumption: 3800 },
+        { name: "南星食品", consumption: 3400 }
       ]
     }
   ]
