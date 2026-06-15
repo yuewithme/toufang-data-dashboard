@@ -18,7 +18,6 @@ type StatCard = {
   previousLabel: string;
   previousValue: number;
   tone: string;
-  previousTone: string;
   className: string;
   compare?: {
     value: number;
@@ -33,7 +32,6 @@ const getConsumptionStats = (data: DashboardData): StatCard[] => [
     previousLabel: '上期总消耗',
     previousValue: data.previousPeriodConsumption,
     tone: 'text-blue-400',
-    previousTone: 'text-amber-400',
     compare: {
       value: getPercentChange(data.periodConsumption, data.previousPeriodConsumption),
       text: formatComparePercent(getPercentChange(data.periodConsumption, data.previousPeriodConsumption)),
@@ -46,7 +44,6 @@ const getConsumptionStats = (data: DashboardData): StatCard[] => [
     previousLabel: '上期日均消耗',
     previousValue: data.previousPeriodAverageConsumption,
     tone: 'text-emerald-400',
-    previousTone: 'text-slate-100',
     compare: {
       value: getPercentChange(data.periodAverageConsumption, data.previousPeriodAverageConsumption),
       text: formatComparePercent(getPercentChange(data.periodAverageConsumption, data.previousPeriodAverageConsumption)),
@@ -62,7 +59,6 @@ const getCustomerStats = (data: DashboardData): StatCard[] => [
     previousLabel: '上期客户量',
     previousValue: data.previousPeriodCustomers,
     tone: 'text-cyan-300',
-    previousTone: 'text-violet-300',
     compare: {
       value: data.periodCustomers - data.previousPeriodCustomers,
       text: formatCompareNumber(data.periodCustomers - data.previousPeriodCustomers),
@@ -75,7 +71,6 @@ const getCustomerStats = (data: DashboardData): StatCard[] => [
     previousLabel: '上期日均客户',
     previousValue: data.previousPeriodAverageCustomers,
     tone: 'text-lime-300',
-    previousTone: 'text-slate-100',
     compare: {
       value: data.periodAverageCustomers - data.previousPeriodAverageCustomers,
       text: formatCompareNumber(data.periodAverageCustomers - data.previousPeriodAverageCustomers),
@@ -96,8 +91,8 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
           : 'text-slate-500';
 
       return (
-        <Card key={stat.label} className={`${stat.className} min-h-[156px] shadow-lg`}>
-          <CardContent className="flex h-full flex-col justify-center gap-4 p-5">
+        <Card key={stat.label} className={`${stat.className} min-h-[118px] shadow-lg`}>
+          <CardContent className="flex h-full flex-col justify-center gap-2.5 p-5">
             <div>
               <span className="text-xs font-semibold text-slate-400">{stat.label}</span>
               <div className="mt-2 flex items-baseline gap-3">
@@ -109,11 +104,8 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
                 )}
               </div>
             </div>
-            <div className="border-t border-slate-700/50 pt-3">
-              <span className="text-xs font-semibold text-slate-500">{stat.previousLabel}</span>
-              <div className={`mt-1 text-2xl font-extrabold tabular-nums ${stat.previousTone}`}>
-                {formatNumber(stat.previousValue)}
-              </div>
+            <div className="text-xs font-bold tabular-nums text-slate-500">
+              上期 {formatNumber(stat.previousValue)}
             </div>
           </CardContent>
         </Card>
