@@ -1,0 +1,26 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "src": "src/pages/Dashboard.tsx"
+    }
+  ],
+  "components": [
+    {
+      "name": "DashboardHeader",
+      "src": "src/components/DashboardHeader.tsx"
+    },
+    {
+      "name": "TaskCompletionPanel",
+      "src": "src/components/TaskCompletionPanel.tsx"
+    },
+    {
+      "name": "CustomerDetailsPanel",
+      "src": "src/components/CustomerDetailsPanel.tsx"
+    },
+    {
+      "name": "ScrollingList",
+      "src": "src/components/ScrollingList.tsx"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+export interface TopListItem {
+  rank: number;
+  name: string;
+  value: string;
+  change: string;
+  isUp: boolean;
+}
+
+export interface PlatformCustomerItem {
+  name: string;
+  consumption: number;
+}
+
+export interface PlatformPerformance {
+  name: string;
+  accentColor: "red" | "green" | "blue";
+  periodConsumption: number;
+  periodCustomers: number;
+  customers: PlatformCustomerItem[];
+}
+
+export interface DashboardData {
+  companyName: string;
+  target: string;
+  yoy: string;
+  predictedCompletion: string;
+  currentCompletionRate: string;
+  timeProgress: string;
+  actualAmount: string;
+  doubleMonthTarget: string;
+  actualConsumption: string;
+  last7DayAvg: string;
+  prev7DayAvg: string;
+  wowChange: string;
+  activeCustomers: number;
+  periodConsumption: number;
+  previousPeriodConsumption: number;
+  periodAverageConsumption: number;
+  previousPeriodAverageConsumption: number;
+  periodCustomers: number;
+  previousPeriodCustomers: number;
+  periodAverageCustomers: number;
+  previousPeriodAverageCustomers: number;
+  lists: {
+    title: string;
+    subtitle: string;
+    items: TopListItem[];
+  }[];
+  platformPerformance: PlatformPerformance[];
+}
+
+const customerNames = [
+  "猫小乐", "海氏Hauswirt", "造物者CREATOR", "NOJI个护", "舒芙茵", "BABI", "Girlcult构奇", "DPDP", "三资堂CENSTO",
+  "法芮森洗护", "一只驴屎官", "小聪明兜兜", "植场大师日用", "Evers", "咖皇", "诚实的薯薯", "女儿红酱酒",
+  "启初Giving", "屋卫仕旗舰店", "泰夕奇家清", "KAZOO可逐美妆", "蒂洛薇", "植场大师家居", "KAZOO可逐护肤",
+  "海尔智家", "Pethere萌宠在", "卡萨帝", "蒂洛薇化妆品", "静优学", "最新互联网副业",
+  "伊禾本电子商务", "火星人集成厨电", "诗佩妮SPENNY种草集",
+  "顾家家居", "LittleOndine/小奥汀", "草本初色幽兰", "小野和子", "百雀羚", "eLL", "Judydoll橘朵", "海尔热水器"
+];
+
+const generateItems = (count: number, unit: string, prefix: string = "") => {
+  return Array.from({ length: count }).map((_, i) => ({
+    rank: i + 1,
+    name: customerNames[i % customerNames.length],
+    value: `${prefix}${(Math.random() * 10 + 1).toFixed(1)}${unit}`,
+    change: `${(Math.random() * 5).toFixed(1)}万`,
+    isUp: Math.random() > 0.4
+  }));
+};
+
+export const mockDashboardData: DashboardData = {
+  companyName: "杭州沃虎科技有限公司",
+  target: "¥9,270.2万",
+  yoy: "+48.0%",
+  predictedCompletion: "68.0%",
+  currentCompletionRate: "42.2%",
+  timeProgress: "63.9%",
+  actualAmount: "¥6,300.4万",
+  doubleMonthTarget: "¥9,270.2万",
+  actualConsumption: "¥3,915.0万",
+  last7DayAvg: "¥108.4万",
+  prev7DayAvg: "¥111.5万",
+  wowChange: "-2.7%",
+  activeCustomers: 247,
+  periodConsumption: 998000,
+  previousPeriodConsumption: 1110000,
+  periodAverageConsumption: 499000,
+  previousPeriodAverageConsumption: 555000,
+  periodCustomers: 247,
+  previousPeriodCustomers: 246,
+  periodAverageCustomers: 35,
+  previousPeriodAverageCustomers: 35,
+  lists: [
+    {
+      title: "昨日消耗 TOP30",
+      subtitle: "6.8 单日消耗 Top30",
+      items: generateItems(30, "万", "¥")
+    },
+    {
+      title: "增量 TOP30",
+      subtitle: "6.8 vs 6.7 日环比",
+      items: generateItems(30, "万", "+")
+    },
+    {
+      title: "掉量 TOP30",
+      subtitle: "6.8 vs 6.7 日环比",
+      items: generateItems(30, "万", "-")
+    },
+    {
+      title: "新增客户",
+      subtitle: "6.8 vs 6.7 日环比",
+      items: generateItems(30, "万", "¥")
+    },
+    {
+      title: "年同比增量 TOP30",
+      subtitle: "6.8 vs 去年同天 6.8",
+      items: generateItems(30, "万", "+")
+    },
+    {
+      title: "年同比掉量 TOP30",
+      subtitle: "6.8 vs 去年同天 6.8",
+      items: generateItems(30, "万", "-")
+    }
+  ],
+  // 变更原因：右侧红框区域需要按参考图展示三平台模块，并使用固定图片数据替代随机榜单。
+  platformPerformance: [
+    {
+      name: "小红书",
+      accentColor: "red",
+      periodConsumption: 915000,
+      periodCustomers: 42,
+      customers: [
+        { name: "星河科技", consumption: 190000 },
+        { name: "云启教育", consumption: 120000 },
+        { name: "蓝海医美", consumption: 860000 },
+        { name: "智达家居", consumption: 680000 },
+        { name: "华耀电商", consumption: 530000 },
+        { name: "恒巨传媒", consumption: 470000 },
+        { name: "瑞森教育", consumption: 390000 },
+        { name: "青柠母婴", consumption: 355000 },
+        { name: "未来家电", consumption: 326000 },
+        { name: "栖云美妆", consumption: 298000 },
+        { name: "橙光生活", consumption: 256000 },
+        { name: "启航旅游", consumption: 218000 },
+        { name: "初见服饰", consumption: 176000 },
+        { name: "元启食品", consumption: 143000 }
+      ]
+    },
+    {
+      name: "视频号",
+      accentColor: "green",
+      periodConsumption: 562000,
+      periodCustomers: 37,
+      customers: [
+        { name: "新锐汽车", consumption: 116000 },
+        { name: "康元健康", consumption: 94000 },
+        { name: "墨白服饰", consumption: 72000 },
+        { name: "飞越本地生活", consumption: 59000 },
+        { name: "启明咨询", consumption: 48000 },
+        { name: "润庭家居", consumption: 36000 },
+        { name: "迅捷服务", consumption: 31000 },
+        { name: "赤焰体育", consumption: 29000 },
+        { name: "轻舟出行", consumption: 26000 },
+        { name: "森屿咖啡", consumption: 24000 },
+        { name: "长风数码", consumption: 21000 },
+        { name: "喜禾餐饮", consumption: 18000 },
+        { name: "觅光摄影", consumption: 16000 },
+        { name: "万象商贸", consumption: 13000 }
+      ]
+    },
+    {
+      name: "支付宝",
+      accentColor: "blue",
+      periodConsumption: 435000,
+      periodCustomers: 42,
+      customers: [
+        { name: "明德教育", consumption: 101000 },
+        { name: "汇鑫金融", consumption: 89000 },
+        { name: "绿洲零售", consumption: 65000 },
+        { name: "安心服务", consumption: 52000 },
+        { name: "远航旅游", consumption: 39000 },
+        { name: "佳禾餐饮", consumption: 32000 },
+        { name: "晨光科技", consumption: 28000 },
+        { name: "蓝鲸运动", consumption: 26000 },
+        { name: "星芒传媒", consumption: 23000 },
+        { name: "山海家装", consumption: 21000 },
+        { name: "晴川教育", consumption: 19000 },
+        { name: "北辰汽车", consumption: 17000 },
+        { name: "银杏护理", consumption: 15000 },
+        { name: "星野露营", consumption: 12000 }
+      ]
+    }
+  ]
+};
