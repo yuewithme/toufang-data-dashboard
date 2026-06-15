@@ -4,8 +4,6 @@ import { Button } from './ui/button';
 import { cn } from '../lib/utils';
 
 const mockBrands = ['星河科技', '云启教育', '蓝海医美', '智达家居', '华耀电商', '新锐汽车', '明德教育'];
-const initialStartDate = '2026-06-05';
-const initialEndDate = '2026-06-11';
 const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
 
 type CalendarDay = {
@@ -18,6 +16,15 @@ type CalendarDay = {
 const pad2 = (value: number) => String(value).padStart(2, '0');
 
 const toDateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+
+const getYesterdayDateKey = () => {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return toDateKey(date);
+};
+
+const initialStartDate = getYesterdayDateKey();
+const initialEndDate = initialStartDate;
 
 const fromDateKey = (dateKey: string) => {
   const [year, month, day] = dateKey.split('-').map(Number);
@@ -255,7 +262,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false);
   const [startDate, setStartDate] = React.useState(initialStartDate);
   const [endDate, setEndDate] = React.useState(initialEndDate);
-  const [compareType, setCompareType] = React.useState('环比');
   const [brandName, setBrandName] = React.useState('');
 
   const previousRange = getPreviousRange(startDate, endDate);
@@ -263,7 +269,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const resetFilters = () => {
     setStartDate(initialStartDate);
     setEndDate(initialEndDate);
-    setCompareType('环比');
     onRankCountChange(15);
     setBrandName('');
     onSelectedPlatformChange('');
@@ -302,18 +307,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             />
           )}
         </div>
-
-        <label className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200">比较类型</span>
-          <select
-            value={compareType}
-            onChange={(event) => setCompareType(event.target.value)}
-            className="h-8 w-[100px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
-          >
-            <option>环比</option>
-            <option>同比</option>
-          </select>
-        </label>
 
         <label className="flex items-center gap-2">
           <span className="font-semibold text-slate-200">排行数量</span>

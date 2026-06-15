@@ -99,10 +99,10 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
       const isUp = stat.compare ? stat.compare.value > 0 : false;
       const isDown = stat.compare ? stat.compare.value < 0 : false;
       const compareClassName = isUp
-        ? 'border-rose-400/30 bg-rose-500/10 text-rose-300'
+        ? 'text-rose-400'
         : isDown
-          ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-          : 'border-slate-500/30 bg-slate-500/10 text-slate-300';
+          ? 'text-emerald-300'
+          : 'text-slate-300';
 
       return (
         <Card key={stat.label} className={`${stat.className} min-h-[132px] shadow-lg`}>
@@ -111,7 +111,7 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
             <div className="flex items-baseline gap-3">
               <span className={`text-3xl font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
               {stat.compare && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs font-bold tabular-nums ${compareClassName}`}>
+                <span className={`text-base font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
                   {isUp ? '↑' : isDown ? '↓' : '→'} {stat.compare.text}
                 </span>
               )}
