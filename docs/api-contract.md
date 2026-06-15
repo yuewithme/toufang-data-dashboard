@@ -186,6 +186,154 @@ changePercent = previousConsumption === 0 ? 0 : change / previousConsumption * 1
 - 右侧客户榜单：客户名称、本期消耗量、上期消耗量。
 - 页脚更新时间：数据最新同步时间。
 
+## 源表字段映射方案
+
+截图中的数据表可以作为看板的明细源表。前端看板不直接展示每一列，而是按日期、平台、品牌/客户名称聚合后展示。
+
+### 源表字段
+
+```ts
+type SourceAdRow = {
+  customerAccountId?: string;      // 客户账户ID
+  customerAccountName?: string;    // 客户账户名
+  brandName: string;               // 品牌名称
+  companyEntity: string;           // 公司主体
+  agencyAccountName: string;       // 代理商账户名
+  customerGroup: string;           // 客户群
+  nonGiftConsumption: number;      // 非赠款消耗
+  brandAdGroup: number;            // 品牌广告组
+  biddingAdGroup: number;          // 竞价广告组
+  giftConsumption: number;         // 赠款消耗
+  returnPointTotal: number;        // 返点（货点）
+  returnPointCash: number;         // 返点（现金点）
+  remark?: string;                 // 备注
+  consumeDate: string;             // 消耗日期，YYYY-MM-DD
+}
+```
+
+### 字段对应关系
+
+| 源表字段 | 接口字段 | 前端位置 | 处理规则 |
+| --- | --- | --- | --- |
+| `品牌名称` | `brandName` | 品牌名称筛选、右侧客户名称 | 作为当前页面的“品牌/客户”主维度。筛选时支持模糊匹配。 |
+| `消耗日期` | `consumeDate` | 日期范围筛选 | 按本期日期范围和上期日期范围分别过滤。 |
+| `非赠款消耗` | `nonGiftConsumption` | 本期/上期消耗量 | 当前页面建议主口径使用该字段作为真实消耗。 |
+| `赠款消耗` | `giftConsumption` | 可选扩展口径 | 如业务需要展示总投放成本，可计算 `nonGiftConsumption + giftConsumption`。当前页面暂不计入。 |
+| `代理商账户名` | `agencyAccountName` / `platform` | 平台选择、小红书/视频号/支付宝分组 | 当前截图值如“小红书聚光乘风...”，需要后端按关键词或平台字典归一化为平台名称。 |
+| `客户账户名` | `customerAccountName` | 备用客户标识 | 当前页面优先展示品牌名称；品牌名为空时可回退显示客户账户名。 |
+| `客户账户ID` | `customerAccountId` | 数据去重、明细追踪 | 不直接展示，用于后端明细去重和排查。 |
+| `客户群` | `customerGroup` | 可选筛选条件 | 当前页面未展示，后续可作为客户群筛选项。 |
+| `公司主体` | `companyEntity` | 可选筛选条件 | 当前页面顶部公司名固定；后续多主体时可作为筛选项。 |
+| `品牌广告组` | `brandAdGroup` | 可选指标 | 当前页面暂不展示，可用于广告组结构分析。 |
+| `竞价广告组` | `biddingAdGroup` | 可选指标 | 当前页面暂不展示，可用于广告组结构分析。 |
+| `返点（货点）` | `returnPointTotal` | 可选财务指标 | 当前页面暂不展示。 |
+| `返点（现金点）` | `returnPointCash` | 可选财务指标 | 当前页面暂不展示。 |
+| `备注` | `remark` | 可选明细字段 | 当前页面暂不展示。 |
+
+### 平台归一化规则
+
+源表里没有直接的“平台”字段，但 `代理商账户名` 可以推导平台。建议后端统一输出平台字段，避免前端做字符串判断。
+
+```ts
+function normalizePlatform(row: SourceAdRow): '小红书' | '视频号' | '支付宝' | '其他' {
+  const text = `${row.agencyAccountName || ''}${row.customerGroup || ''}`;
+  if (text.includes('小红书') || text.includes('聚光')) return '小红书';
+  if (text.includes('视频号')) return '视频号';
+  if (text.includes('支付宝')) return '支付宝';
+  return '其他';
+}
+```
+
+### 页面计算口径
+
+#### 本期消耗
+
+```ts
+periodConsumption = sum(nonGiftConsumption)
+where consumeDate between startDate and endDate
+and platform matches selected platform if provided
+and brandName fuzzy matches selected brandName if provided
+```
+
+#### 上期消耗
+
+```ts
+previousConsumption = sum(nonGiftConsumption)
+where consumeDate between previousStartDate and previousEndDate
+and uses the same platform / brand filters
+```
+
+#### 本期客户量
+
+```ts
+periodCustomers = countDistinct(brandName || customerAccountId)
+where periodConsumption > 0
+```
+
+#### 上期客户量
+
+```ts
+previousCustomers = countDistinct(brandName || customerAccountId)
+where previousConsumption > 0
+```
+
+#### 日均消耗
+
+```ts
+periodDailyAverage = round(periodConsumption / periodDays)
+previousDailyAverage = round(previousConsumption / previousDays)
+```
+
+#### 日均客户
+
+```ts
+periodDailyAverageCustomers = round(periodCustomers / periodDays)
+previousDailyAverageCustomers = round(previousCustomers / previousDays)
+```
+
+#### 右侧平台卡片
+
+每个平台卡片的数据都必须从同一批过滤后的源表聚合：
+
+```ts
+platform.periodConsumption = sum(nonGiftConsumption by platform)
+platform.periodCustomers = countDistinct(brandName || customerAccountId by platform)
+platform.customers = group by brandName, then sum periodConsumption and previousConsumption
+```
+
+客户榜单排序：
+
+```ts
+customers.sort((a, b) => b.periodConsumption - a.periodConsumption)
+customers.slice(0, rankCount)
+```
+
+### 建议后端聚合 SQL 口径
+
+以下是伪 SQL，实际字段名按数据库表结构替换：
+
+```sql
+SELECT
+  normalized_platform AS platform,
+  COALESCE(brand_name, customer_account_name, customer_account_id) AS brand_name,
+  SUM(CASE WHEN consume_date BETWEEN :startDate AND :endDate
+      THEN non_gift_consumption ELSE 0 END) AS period_consumption,
+  SUM(CASE WHEN consume_date BETWEEN :previousStartDate AND :previousEndDate
+      THEN non_gift_consumption ELSE 0 END) AS previous_consumption
+FROM ad_consumption_daily
+WHERE consume_date BETWEEN :previousStartDate AND :endDate
+  AND (:platform IS NULL OR normalized_platform = :platform)
+  AND (:brandName IS NULL OR brand_name LIKE CONCAT('%', :brandName, '%'))
+GROUP BY normalized_platform, COALESCE(brand_name, customer_account_name, customer_account_id);
+```
+
+后端返回给前端前，再按平台聚合出：
+
+- 平台本期消耗：`sum(period_consumption)`
+- 平台本期客户总量：`count(period_consumption > 0)`
+- 页面总消耗：所有平台 `period_consumption` 求和
+- 页面总客户量：所有平台客户去重计数，建议按 `brandName || customerAccountId`
+
 ## 暂时仍可前端配置的数据
 
 - 公司名称：杭州沃虎科技有限公司。
