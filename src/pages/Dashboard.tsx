@@ -22,12 +22,12 @@ const Dashboard: React.FC = () => {
       <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
         <div className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
           {/* Left Column - Task Completion */}
-          <div className="lg:col-span-6 xl:col-span-5">
+          <div className="lg:col-span-5 xl:col-span-4">
             <TaskCompletionPanel />
           </div>
 
           {/* Right Column - Customer Details */}
-          <div className="lg:col-span-6 xl:col-span-7 h-full min-h-[600px]">
+          <div className="lg:col-span-7 xl:col-span-8 h-full min-h-[600px]">
             <CustomerDetailsPanel
               rankCount={filters.rankCount}
               selectedPlatform={filters.selectedPlatform}

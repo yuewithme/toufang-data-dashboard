@@ -57,6 +57,13 @@ const getCompareTone = (change: number) => {
   return 'text-slate-500';
 };
 
+const getPercentChange = (current: number, previous: number) => {
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
+};
+
+const formatPercent = (value: number) => `${Math.abs(value).toFixed(1)}%`;
+
 const PlatformCard: React.FC<{
   platform: PlatformPerformance;
   customers: PlatformCustomerItem[];
@@ -97,35 +104,26 @@ const PlatformCard: React.FC<{
         </div>
       </div>
 
-      <div className="mx-4 mb-3 flex items-center border-b border-blue-900/40 pb-2 text-xs font-bold text-slate-300">
-        <span className="w-9 shrink-0">排名</span>
-        <span className="min-w-0 flex-1">客户名称</span>
-        <span className="w-36 shrink-0 text-right">消耗量</span>
-      </div>
-
       <div className="dashboard-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4 pr-2">
         <div className="space-y-2 pr-2">
-          {rankedCustomers.map((customer, index) => {
+          {rankedCustomers.map((customer) => {
             const previousConsumption = getPreviousConsumption(customer);
             const change = customer.consumption - previousConsumption;
+            const percentChange = getPercentChange(customer.consumption, previousConsumption);
             const compareTone = getCompareTone(change);
+            const arrow = change > 0 ? '↑' : change < 0 ? '↓' : '→';
 
             return (
               <div
                 key={customer.name}
-                className={`flex min-h-[64px] items-center gap-3 rounded-md border border-blue-900/25 bg-gradient-to-r ${styles.row} px-3 py-2 text-sm shadow-sm shadow-black/10`}
+                className={`flex min-h-[92px] flex-col items-start justify-center rounded-md border border-blue-900/25 bg-gradient-to-r ${styles.row} px-4 py-3 shadow-sm shadow-black/10`}
               >
-                <span className={`w-7 shrink-0 font-extrabold tabular-nums ${styles.rank}`}>{index + 1}</span>
-                <span className="min-w-0 flex-1 truncate font-bold text-slate-50">{customer.name}</span>
-                <span className="w-36 shrink-0 text-right">
-                  <span className="block font-extrabold tabular-nums text-[#d99700]">{formatNumber(customer.consumption)}</span>
-                  <span className="mt-1 block text-[11px] font-bold tabular-nums text-slate-400">
-                    上期消耗量：{formatNumber(previousConsumption)}
-                    <span className={`ml-1 ${compareTone}`}>
-                      {change > 0 ? '↑' : change < 0 ? '↓' : '→'} {formatNumber(Math.abs(change))}
-                    </span>
-                  </span>
-                </span>
+                <div className="w-full truncate text-base font-extrabold text-slate-50">{customer.name}</div>
+                <div className={`mt-1 flex w-full items-baseline gap-2 text-2xl font-extrabold tabular-nums ${compareTone}`}>
+                  <span>{formatNumber(customer.consumption)}</span>
+                  <span className="text-base font-extrabold">{arrow} {formatPercent(percentChange)}</span>
+                </div>
+                <div className="mt-1 text-xs font-bold tabular-nums text-slate-500">上期 {formatNumber(previousConsumption)}</div>
               </div>
             );
           })}
