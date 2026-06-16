@@ -331,6 +331,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [draftBrandName, setDraftBrandName] = React.useState(filters.brandName);
   const [draftSelectedPlatform, setDraftSelectedPlatform] = React.useState(filters.selectedPlatform);
 
+  React.useEffect(() => {
+    setStartDate(filters.startDate);
+    setEndDate(filters.endDate);
+    setDraftRankCount(filters.rankCount);
+    setDraftBrandName(filters.brandName);
+    setDraftSelectedPlatform(filters.selectedPlatform);
+  }, [filters]);
+
   const previousRange = getPreviousRange(startDate, endDate);
 
   const applyFilterChanges = (nextFilters: Partial<typeof filters>) => {
@@ -442,7 +450,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             }}
             className="h-8 w-[108px] rounded border border-slate-700 bg-[#0d1425] px-3 text-slate-100 outline-none focus:border-blue-500"
           >
-            <option value=""> </option>
+            <option value="">总览</option>
             <option value="小红书">小红书</option>
             <option value="视频号">视频号</option>
             <option value="支付宝">支付宝</option>

@@ -30,6 +30,13 @@ const Dashboard: React.FC = () => {
   const dashboardData = React.useMemo(() => buildDashboardData(filters), [filters]);
   const trendData = React.useMemo(() => buildSevenDayTrendData(filters), [filters]);
   const isFocusedDashboard = Boolean(filters.selectedPlatform || filters.brandName.trim());
+  const updateFilterValue = React.useCallback((nextFilters: Partial<typeof filters>) => {
+    setViewMode('dashboard');
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      ...nextFilters,
+    }));
+  }, []);
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0a1a] text-slate-50 overflow-hidden">
@@ -69,6 +76,8 @@ const Dashboard: React.FC = () => {
                 brandName={filters.brandName}
                 data={dashboardData}
                 compact={isFocusedDashboard}
+                onPlatformSelect={(platformName) => updateFilterValue({ selectedPlatform: platformName })}
+                onBrandSelect={(nextBrandName) => updateFilterValue({ brandName: nextBrandName })}
               />
             </div>
           </div>
