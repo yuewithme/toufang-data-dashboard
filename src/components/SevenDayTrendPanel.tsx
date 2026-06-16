@@ -47,14 +47,14 @@ export const SevenDayTrendPanel: React.FC<{
       <div className="grid shrink-0 grid-cols-2 gap-2">
         <div className="rounded-md border border-blue-900/40 bg-[#172437] p-3">
           <div className="text-[10px] font-bold text-slate-500">七天总消耗</div>
-          <div className="mt-1 text-xl font-extrabold tabular-nums text-blue-400">
-            {formatCompactMoney(total)}
+          <div className="mt-1 whitespace-nowrap text-[clamp(20px,1.8vw,28px)] font-extrabold leading-none tabular-nums text-blue-400">
+            {formatNumber(total)}
           </div>
         </div>
         <div className="rounded-md border border-emerald-900/35 bg-[#132d2f] p-3">
           <div className="text-[10px] font-bold text-slate-500">单日峰值</div>
-          <div className="mt-1 text-xl font-extrabold tabular-nums text-emerald-400">
-            {formatCompactMoney(peak)}
+          <div className="mt-1 whitespace-nowrap text-[clamp(20px,1.8vw,28px)] font-extrabold leading-none tabular-nums text-emerald-400">
+            {formatNumber(peak)}
           </div>
         </div>
       </div>

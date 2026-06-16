@@ -17,12 +17,6 @@ const pad2 = (value: number) => String(value).padStart(2, '0');
 
 const toDateKey = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
-const getYesterdayDateKey = () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 1);
-  return toDateKey(date);
-};
-
 const getTodayDateKey = () => toDateKey(new Date());
 
 const getCurrentMonthRange = () => {
@@ -35,7 +29,7 @@ const getCurrentMonthRange = () => {
   };
 };
 
-const initialStartDate = getYesterdayDateKey();
+const initialStartDate = getTodayDateKey();
 const initialEndDate = initialStartDate;
 
 const fromDateKey = (dateKey: string) => {

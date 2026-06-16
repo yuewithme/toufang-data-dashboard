@@ -22,10 +22,10 @@ const Dashboard: React.FC = () => {
     rankCount: 15,
     selectedPlatform: '',
     brandName: '',
-    startDate: getDateKey(-1),
-    endDate: getDateKey(-1),
-    previousStartDate: getDateKey(-2),
-    previousEndDate: getDateKey(-2),
+    startDate: getDateKey(0),
+    endDate: getDateKey(0),
+    previousStartDate: getDateKey(-1),
+    previousEndDate: getDateKey(-1),
   });
   const dashboardData = React.useMemo(() => buildDashboardData(filters), [filters]);
   const trendData = React.useMemo(() => buildSevenDayTrendData(filters), [filters]);
