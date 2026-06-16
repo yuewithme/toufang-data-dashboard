@@ -37,6 +37,7 @@ const columns: Array<{
 ];
 
 type RecordFormValues = {
+  brandName: string;
   customerGroup: string;
   nonGiftConsumption: string;
   agencyAccountName: string;
@@ -55,8 +56,9 @@ const getDefaultAgencyAccount = (selectedPlatform?: string) => {
   return option ?? agencyAccountOptions[0];
 };
 
-const createEmptyFormValues = (selectedPlatform?: string): RecordFormValues => ({
-  customerGroup: '沃虎&新增客户代投对接群',
+const createEmptyFormValues = (selectedPlatform?: string, brandName = ''): RecordFormValues => ({
+  brandName: brandName || '新增品牌',
+  customerGroup: brandName ? `沃虎&${brandName}代投对接群` : '沃虎&新增客户代投对接群',
   nonGiftConsumption: '',
   agencyAccountName: getDefaultAgencyAccount(selectedPlatform),
 });
@@ -126,9 +128,9 @@ export const RawDataView: React.FC<{
   const handleCreate = () => {
     setRecordDialog({
       mode: 'create',
-      values: createEmptyFormValues(filters.selectedPlatform),
+      values: createEmptyFormValues(filters.selectedPlatform, filters.brandName),
     });
-    setActionHint('新增记录：填写客户群、非赠款消耗、代理商账户名后保存');
+    setActionHint('新增记录：填写品牌名称、客户群、非赠款消耗、代理商账户名后保存');
   };
 
   const handleEdit = () => {
@@ -142,6 +144,7 @@ export const RawDataView: React.FC<{
       mode: 'edit',
       rowId: getRowId(row),
       values: {
+        brandName: row.brandName,
         customerGroup: row.customerGroup,
         nonGiftConsumption: String(row.nonGiftConsumption),
         agencyAccountName: row.agencyAccountName,
@@ -226,11 +229,17 @@ export const RawDataView: React.FC<{
       return;
     }
 
+    const nextBrandName = recordDialog.values.brandName.trim();
+    if (!nextBrandName) {
+      setActionHint('品牌名称不能为空');
+      return;
+    }
+
     const createdAt = Date.now();
     const newRow: RawSourceDataRow = {
       customerAccountId: `${filters.startDate.replace(/-/g, '')}${createdAt}`,
-      customerAccountName: '沃虎-新增记录',
-      brandName: filters.brandName || '新增记录',
+      customerAccountName: `沃虎-${nextBrandName}`,
+      brandName: nextBrandName,
       companyEntity: '杭州沃虎科技有限公司',
       agencyAccountName: recordDialog.values.agencyAccountName,
       customerGroup: recordDialog.values.customerGroup.trim(),
@@ -399,6 +408,18 @@ export const RawDataView: React.FC<{
               </div>
 
               <div className="space-y-5 px-9 py-5">
+                {recordDialog.mode === 'create' && (
+                  <label className="grid grid-cols-[84px_1fr] items-center gap-4 text-sm">
+                    <span className="text-right font-semibold text-slate-600">品牌名称</span>
+                    <input
+                      value={recordDialog.values.brandName}
+                      onChange={(event) => updateFormValue('brandName', event.target.value)}
+                      className="h-9 rounded border border-slate-300 px-3 text-sm text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      placeholder="请输入品牌名称"
+                    />
+                  </label>
+                )}
+
                 <label className="grid grid-cols-[84px_1fr] items-center gap-4 text-sm">
                   <span className="text-right font-semibold text-slate-600">客户群</span>
                   <input

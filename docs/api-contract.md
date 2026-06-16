@@ -306,8 +306,9 @@ ORDER BY d.consume_date;
 
 ## 7. 原始数据记录操作接口
 
-原始数据页的复选框用于选择记录，后续对选中记录执行修改或删除。新增、修改只允许操作三个字段：
+原始数据页的复选框用于选择记录，后续对选中记录执行修改或删除。新增记录允许填写四个字段，修改记录仍只允许操作三个字段。
 
+- `brandName`：品牌名称，仅新增记录时填写。
 - `customerGroup`：客户群。
 - `nonGiftConsumption`：非赠款消耗。
 - `agencyAccountName`：代理商账户名。
@@ -322,6 +323,7 @@ ORDER BY d.consume_date;
 
 ```json
 {
+  "brandName": "蓝海医美",
   "customerGroup": "沃虎&适合综合对接群代投",
   "nonGiftConsumption": 1035.91,
   "agencyAccountName": "小红书聚光乘风--沃虎"
@@ -330,7 +332,7 @@ ORDER BY d.consume_date;
 
 后端处理逻辑：
 
-1. 校验三个字段必填。
+1. 校验 `brandName`、`customerGroup`、`nonGiftConsumption`、`agencyAccountName` 必填。
 2. `nonGiftConsumption` 必须为大于等于 0 的数字。
 3. 根据 `agencyAccountName` 计算 `platform`，但 `platform` 只作为返回和聚合字段，不写入原始源表字段。
 4. 新增记录如果 `customerGroup` 不包含 `代投`，可以保存到源表，但不会进入看板统计和原始数据默认列表。
@@ -420,7 +422,7 @@ passesDashboardFilter = false
 - 右侧平台汇总：每个平台的本期消耗量、本期客户总量。
 - 右侧客户榜单：客户名称、本期消耗量、上期消耗量。
 - 原始数据明细：源表全部字段，以及后端归一化后的平台字段。
-- 原始数据操作：新增、修改、删除记录；新增/修改只提交客户群、非赠款消耗、代理商账户名。
+- 原始数据操作：新增、修改、删除记录；新增提交品牌名称、客户群、非赠款消耗、代理商账户名，修改只提交客户群、非赠款消耗、代理商账户名。
 - 页脚更新时间：数据最新同步时间。
 
 ## 源表字段映射方案
