@@ -355,24 +355,47 @@ const getTrailingDates = (endDate: string, days: number) => {
   });
 };
 
+const getStableSeed = (value: string) => Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+const fallbackPlatformBaseMultiplier: Record<string, number> = {
+  "小红书": 0.96,
+  "视频号": 1.03,
+  "支付宝": 0.98,
+};
+
+const getPlatformMultiplier = (platform: string, dateKey: string) => {
+  const configuredMultiplier = platformDailyMultipliers[dateKey]?.[platform];
+  if (configuredMultiplier !== undefined) return configuredMultiplier;
+
+  const seed = getStableSeed(`${platform}${dateKey}`);
+  const fallbackBase = fallbackPlatformBaseMultiplier[platform] ?? 1;
+  return Math.round((fallbackBase + ((seed % 23) - 11) / 100) * 100) / 100;
+};
+
 const getCustomerFactor = (name: string, dateKey: string) => {
-  const seed = Array.from(`${name}${dateKey}`).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const seed = getStableSeed(`${name}${dateKey}`);
   return 0.86 + (seed % 29) / 100;
 };
 
 const getDailyConsumption = (baseConsumption: number, platform: string, customerName: string, dateKey: string) => {
-  const platformMultiplier = platformDailyMultipliers[dateKey]?.[platform] ?? 0;
-  if (platformMultiplier === 0) return 0;
-
+  const platformMultiplier = getPlatformMultiplier(platform, dateKey);
   return Math.round((baseConsumption * platformMultiplier * getCustomerFactor(customerName, dateKey)) / 1000) * 1000;
 };
 
-const sourceDateKeys = Object.keys(platformDailyMultipliers).sort();
+const sourceDateKeys = getRangeDates("2026-06-03", "2026-06-16");
 
 const platformAgencyAccount: Record<string, string> = {
   "小红书": "小红书聚光乘风--沃虎",
   "视频号": "腾讯视频号--沃虎",
   "支付宝": "支付宝-沃虎",
+};
+
+const getAgencyAccountName = (platformName: string, splitIndex: number, seed: number) => {
+  if (platformName === "小红书" && (splitIndex + seed) % 3 === 0) {
+    return "小红书品专--沃虎";
+  }
+
+  return platformAgencyAccount[platformName] ?? `${platformName}投放账户`;
 };
 
 export const agencyPlatformMap = {
@@ -395,37 +418,59 @@ const platformCompanyEntity: Record<string, string> = {
   "支付宝": "杭州沃虎数智营销有限公司",
 };
 
-const getStableSeed = (value: string) => Array.from(value).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-
 const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+const getSplitRatios = (grossConsumption: number, seed: number) => {
+  if (grossConsumption >= 50000) {
+    return seed % 2 === 0 ? [0.52, 0.31, 0.17] : [0.58, 0.27, 0.15];
+  }
+
+  if (grossConsumption >= 12000) {
+    return seed % 2 === 0 ? [0.64, 0.36] : [0.7, 0.3];
+  }
+
+  return [1];
+};
 
 const createMockSourceRows = (): RawSourceDataRow[] => {
   return mockDashboardData.platformPerformance.flatMap((platform) =>
     sourceDateKeys.flatMap((dateKey) =>
-      platform.customers.map((customer, customerIndex) => {
+      platform.customers.flatMap((customer, customerIndex) => {
         const seed = getStableSeed(`${platform.name}${customer.name}${dateKey}`);
         const grossConsumption = getDailyConsumption(customer.consumption, platform.name, customer.name, dateKey);
-        const hasGiftConsumption = seed % 6 === 0;
-        const giftConsumption = hasGiftConsumption ? Math.round(grossConsumption * 0.08) : 0;
-        const nonGiftConsumption = Math.max(grossConsumption - giftConsumption, 0);
+        const splitRatios = getSplitRatios(grossConsumption, seed);
+        let allocatedConsumption = 0;
 
-        return {
-          customerAccountId: `${dateKey.replace(/-/g, "")}${String(customerIndex + 1).padStart(4, "0")}${seed}`,
-          customerAccountName: `沃虎-${customer.name}`,
-          brandName: customer.name,
-          companyEntity: platformCompanyEntity[platform.name] ?? "杭州沃虎科技有限公司",
-          agencyAccountName: platformAgencyAccount[platform.name] ?? `${platform.name}投放账户`,
-          customerGroup: `沃虎&${customer.name}${platform.name}代投对接群`,
-          nonGiftConsumption,
-          brandAdGroup: seed % 3 === 0 ? 1 : 0,
-          biddingAdGroup: seed % 4 === 0 ? 1 : 0,
-          giftConsumption,
-          returnPointTotal: roundMoney(1.15 + (seed % 8) / 100),
-          returnPointCash: 1,
-          remark: seed % 5 === 0 ? "重点跟进" : "",
-          consumeDate: dateKey,
-          platform: normalizePlatform(platformAgencyAccount[platform.name] ?? ""),
-        };
+        return splitRatios.map((ratio, splitIndex) => {
+          const splitSeed = seed + splitIndex * 17;
+          const splitGrossConsumption =
+            splitIndex === splitRatios.length - 1
+              ? Math.max(grossConsumption - allocatedConsumption, 0)
+              : Math.round((grossConsumption * ratio) / 100) * 100;
+          allocatedConsumption += splitGrossConsumption;
+          const hasGiftConsumption = splitSeed % 6 === 0;
+          const giftConsumption = hasGiftConsumption ? Math.round(splitGrossConsumption * 0.08) : 0;
+          const nonGiftConsumption = Math.max(splitGrossConsumption - giftConsumption, 0);
+          const agencyAccountName = getAgencyAccountName(platform.name, splitIndex, splitSeed);
+
+          return {
+            customerAccountId: `${dateKey.replace(/-/g, "")}${String(customerIndex + 1).padStart(4, "0")}${splitIndex + 1}${splitSeed}`,
+            customerAccountName: `沃虎-${customer.name}`,
+            brandName: customer.name,
+            companyEntity: platformCompanyEntity[platform.name] ?? "杭州沃虎科技有限公司",
+            agencyAccountName,
+            customerGroup: `沃虎&${customer.name}${platform.name}代投对接群`,
+            nonGiftConsumption,
+            brandAdGroup: splitSeed % 3 === 0 ? 1 : 0,
+            biddingAdGroup: splitSeed % 4 === 0 ? 1 : 0,
+            giftConsumption,
+            returnPointTotal: roundMoney(1.15 + (splitSeed % 8) / 100),
+            returnPointCash: 1,
+            remark: splitSeed % 5 === 0 ? "重点跟进" : "",
+            consumeDate: dateKey,
+            platform: normalizePlatform(agencyAccountName),
+          };
+        });
       }),
     ),
   );

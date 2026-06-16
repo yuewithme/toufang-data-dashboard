@@ -130,7 +130,82 @@ changePercent = previousConsumption === 0 ? 0 : change / previousConsumption * 1
 - `change < 0`：消耗量和百分比都用深绿。
 - `change === 0`：消耗量和百分比都用灰色。
 
-## 4. 建议聚合接口
+## 4. 近七天消耗趋势接口
+
+用于中间折线图。后端必须从数据库真实源表按日聚合，不能返回手写趋势点。当前筛选如果选择了平台或品牌，需要同步作用到趋势图。
+
+`GET /api/dashboard/seven-day-trend`
+
+请求参数：
+
+```ts
+type SevenDayTrendQuery = Pick<DashboardQuery, 'endDate' | 'brandName' | 'platform'>
+```
+
+取数范围：以 `endDate` 为第 7 天，向前推 6 天，共 7 个自然日。例如 `endDate=2026-06-15` 时，统计 `2026-06-09` 至 `2026-06-15`。
+
+```json
+{
+  "points": [
+    { "date": "2026-06-09", "consumption": 3972000 },
+    { "date": "2026-06-10", "consumption": 4528000 },
+    { "date": "2026-06-11", "consumption": 4961000 },
+    { "date": "2026-06-12", "consumption": 6144080 },
+    { "date": "2026-06-13", "consumption": 5572000 },
+    { "date": "2026-06-14", "consumption": 6144080 },
+    { "date": "2026-06-15", "consumption": 6909960 }
+  ],
+  "total": 38170400,
+  "peak": 6909960
+}
+```
+
+后端聚合口径：
+
+- 基础筛选：`customerGroup` 包含 `代投`。
+- 消耗字段：只使用 `nonGiftConsumption`，也就是源表的 `非赠款消耗`。
+- 平台字段：由 `agencyAccountName` 按固定映射归一化得到。
+- 日期字段：使用 `consumeDate`。
+- 缺失日期：必须返回 `consumption: 0`，保证前端永远拿到 7 个点。
+
+建议 SQL 口径：
+
+```sql
+WITH date_series AS (
+  SELECT DATE_SUB(:endDate, INTERVAL 6 DAY) AS consume_date
+  UNION ALL SELECT DATE_SUB(:endDate, INTERVAL 5 DAY)
+  UNION ALL SELECT DATE_SUB(:endDate, INTERVAL 4 DAY)
+  UNION ALL SELECT DATE_SUB(:endDate, INTERVAL 3 DAY)
+  UNION ALL SELECT DATE_SUB(:endDate, INTERVAL 2 DAY)
+  UNION ALL SELECT DATE_SUB(:endDate, INTERVAL 1 DAY)
+  UNION ALL SELECT :endDate
+), source_rows AS (
+  SELECT
+    consume_date,
+    CASE
+      WHEN agency_account_name = '支付宝-沃虎' THEN '支付宝'
+      WHEN agency_account_name IN ('小红书聚光乘风--沃虎', '小红书品专--沃虎') THEN '小红书'
+      WHEN agency_account_name = '腾讯视频号--沃虎' THEN '视频号'
+      ELSE '其他'
+    END AS normalized_platform,
+    COALESCE(brand_name, customer_account_name, customer_account_id) AS brand_name,
+    non_gift_consumption
+  FROM ad_consumption_daily
+  WHERE consume_date BETWEEN DATE_SUB(:endDate, INTERVAL 6 DAY) AND :endDate
+    AND customer_group LIKE '%代投%'
+)
+SELECT
+  d.consume_date AS date,
+  COALESCE(SUM(s.non_gift_consumption), 0) AS consumption
+FROM date_series d
+LEFT JOIN source_rows s ON s.consume_date = d.consume_date
+  AND (:platform IS NULL OR s.normalized_platform = :platform)
+  AND (:brandName IS NULL OR s.brand_name LIKE CONCAT('%', :brandName, '%'))
+GROUP BY d.consume_date
+ORDER BY d.consume_date;
+```
+
+## 5. 建议聚合接口
 
 如果后端希望减少请求次数，可以提供一个聚合接口：
 
@@ -174,11 +249,24 @@ changePercent = previousConsumption === 0 ? 0 : change / previousConsumption * 1
         ]
       }
     ]
+  },
+  "sevenDayTrend": {
+    "points": [
+      { "date": "2026-06-09", "consumption": 3972000 },
+      { "date": "2026-06-10", "consumption": 4528000 },
+      { "date": "2026-06-11", "consumption": 4961000 },
+      { "date": "2026-06-12", "consumption": 6144080 },
+      { "date": "2026-06-13", "consumption": 5572000 },
+      { "date": "2026-06-14", "consumption": 6144080 },
+      { "date": "2026-06-15", "consumption": 6909960 }
+    ],
+    "total": 38170400,
+    "peak": 6909960
   }
 }
 ```
 
-## 5. 原始数据明细接口
+## 6. 原始数据明细接口
 
 用于点击“原始数据”后查看当前筛选范围内的源表字段。该接口展示明细行，不做汇总，字段需要完整返回，方便核对看板计算来源。
 
@@ -216,7 +304,7 @@ changePercent = previousConsumption === 0 ? 0 : change / previousConsumption * 1
 - 表格展示所有源字段，并额外展示后端归一化后的 `platform` 字段。
 - 明细页沿用当前已自动生效的日期、品牌、平台筛选条件。
 
-## 6. 原始数据记录操作接口
+## 7. 原始数据记录操作接口
 
 原始数据页的复选框用于选择记录，后续对选中记录执行修改或删除。新增、修改只允许操作三个字段：
 
@@ -328,6 +416,7 @@ passesDashboardFilter = false
 - 当前筛选时间范围：本期开始/结束日期、上期开始/结束日期。
 - 左侧消耗统计：本期总消耗、上期总消耗、本期日均消耗、上期日均消耗。
 - 左侧客户统计：本期客户量、上期客户量、本期日均客户、上期日均客户。
+- 中间近七天趋势：以当前消耗结束日期为最后一天，向前 6 天按日汇总非赠款消耗。
 - 右侧平台汇总：每个平台的本期消耗量、本期客户总量。
 - 右侧客户榜单：客户名称、本期消耗量、上期消耗量。
 - 原始数据明细：源表全部字段，以及后端归一化后的平台字段。
