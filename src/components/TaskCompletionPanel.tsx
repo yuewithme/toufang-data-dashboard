@@ -80,7 +80,7 @@ const getCustomerStats = (data: DashboardData): StatCard[] => [
 ];
 
 const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
-  <div className="grid grid-cols-1 gap-4">
+  <div className="grid grid-cols-1 gap-2 2xl:gap-3.5">
     {items.map((stat) => {
       const isUp = stat.compare ? stat.compare.value > 0 : false;
       const isDown = stat.compare ? stat.compare.value < 0 : false;
@@ -91,20 +91,20 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
           : 'text-slate-500';
 
       return (
-        <Card key={stat.label} className={`${stat.className} min-h-[118px] shadow-lg`}>
-          <CardContent className="flex h-full flex-col justify-center gap-2.5 p-5">
+        <Card key={stat.label} className={`${stat.className} min-h-[78px] shadow-lg 2xl:min-h-[104px]`}>
+          <CardContent className="flex h-full flex-col justify-center gap-1 p-3 2xl:gap-2 2xl:p-4">
             <div>
-              <span className="text-xs font-semibold text-slate-400">{stat.label}</span>
-              <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 xl:gap-x-3">
-                <span className={`whitespace-nowrap text-[clamp(26px,2vw,36px)] font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
+              <span className="text-[10px] font-semibold text-slate-400 2xl:text-xs">{stat.label}</span>
+              <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 2xl:mt-2 2xl:gap-x-3">
+                <span className={`whitespace-nowrap text-[clamp(20px,1.55vw,29px)] font-bold leading-none tabular-nums 2xl:text-[clamp(26px,2vw,36px)] ${stat.tone}`}>{formatNumber(stat.value)}</span>
                 {stat.compare && (
-                  <span className={`whitespace-nowrap text-[clamp(17px,1.15vw,21px)] font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
+                  <span className={`whitespace-nowrap text-[clamp(13px,0.9vw,17px)] font-extrabold tabular-nums leading-none drop-shadow 2xl:text-[clamp(17px,1.15vw,21px)] ${compareClassName}`}>
                     {isUp ? '↑' : isDown ? '↓' : '→'} {stat.compare.text}
                   </span>
                 )}
               </div>
             </div>
-            <div className="text-xs font-bold tabular-nums text-slate-500">
+            <div className="text-[10px] font-bold tabular-nums text-slate-500 2xl:text-xs">
               上期 {formatNumber(stat.previousValue)}
             </div>
           </CardContent>
@@ -116,14 +116,14 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
 
 export const TaskCompletionPanel: React.FC<{ data: DashboardData }> = ({ data }) => {
   return (
-    <div className="flex flex-col gap-5">
-      <section className="flex flex-col gap-4">
-        <h2 className="px-1 text-sm font-medium text-slate-400">消耗数据统计</h2>
+    <div className="flex flex-col gap-2.5 2xl:gap-4">
+      <section className="flex flex-col gap-2 2xl:gap-3">
+        <h2 className="px-1 text-xs font-semibold text-slate-400 2xl:text-sm">消耗数据统计</h2>
         <StatGrid items={getConsumptionStats(data)} />
       </section>
 
-      <section className="flex flex-col gap-4">
-        <h2 className="px-1 text-sm font-medium text-slate-400">客户数据统计</h2>
+      <section className="flex flex-col gap-2 2xl:gap-3">
+        <h2 className="px-1 text-xs font-semibold text-slate-400 2xl:text-sm">客户数据统计</h2>
         <StatGrid items={getCustomerStats(data)} />
       </section>
     </div>

@@ -40,8 +40,8 @@ const Dashboard: React.FC = () => {
       {viewMode === 'raw' ? (
         <RawDataView filters={filters} onBack={() => setViewMode('dashboard')} />
       ) : (
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
-          <div className="grid h-full w-full grid-cols-1 gap-4 lg:grid-cols-12 xl:gap-6">
+        <main className="flex-1 overflow-y-auto p-3 md:p-4 2xl:p-6 no-scrollbar">
+          <div className="grid h-full w-full grid-cols-1 gap-4 lg:grid-cols-12 2xl:gap-6">
             {/* Left Column - Task Completion */}
             <div className="lg:col-span-3">
               <TaskCompletionPanel data={dashboardData} />
