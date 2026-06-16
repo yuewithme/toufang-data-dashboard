@@ -20,6 +20,12 @@ export interface PlatformPerformance {
   customers: PlatformCustomerItem[];
 }
 
+export interface DailyTrendPoint {
+  date: string;
+  label: string;
+  consumption: number;
+}
+
 export interface DashboardData {
   companyName: string;
   target: string;
@@ -270,6 +276,26 @@ export const mockDashboardData: DashboardData = {
 };
 
 const platformDailyMultipliers: Record<string, Record<string, number>> = {
+  "2026-06-09": {
+    "小红书": 0.76,
+    "视频号": 1.18,
+    "支付宝": 0.91,
+  },
+  "2026-06-10": {
+    "小红书": 0.84,
+    "视频号": 0.96,
+    "支付宝": 1.05,
+  },
+  "2026-06-11": {
+    "小红书": 0.9,
+    "视频号": 1.12,
+    "支付宝": 0.98,
+  },
+  "2026-06-12": {
+    "小红书": 1.04,
+    "视频号": 0.93,
+    "支付宝": 1.16,
+  },
   "2026-06-13": {
     "小红书": 0.92,
     "视频号": 1.08,
@@ -317,6 +343,16 @@ const getRangeDates = (startDate: string, endDate: string) => {
   }
 
   return dates;
+};
+
+const getTrailingDates = (endDate: string, days: number) => {
+  const end = toDate(endDate);
+
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(end);
+    date.setDate(end.getDate() - (days - 1 - index));
+    return toDateKey(date);
+  });
 };
 
 const getCustomerFactor = (name: string, dateKey: string) => {
@@ -411,6 +447,25 @@ export const getRawSourceRows = (filters?: Partial<DateRangeFilters>) => {
       if (a.platform !== b.platform) return a.platform.localeCompare(b.platform);
       return b.nonGiftConsumption - a.nonGiftConsumption;
     });
+};
+
+export const buildSevenDayTrendData = (filters: DateRangeFilters): DailyTrendPoint[] => {
+  const normalizedBrandName = filters.brandName?.trim() ?? "";
+
+  return getTrailingDates(filters.endDate, 7).map((dateKey) => {
+    const consumption = mockSourceRows
+      .filter((row) => row.customerGroup.includes("代投"))
+      .filter((row) => row.consumeDate === dateKey)
+      .filter((row) => !filters.selectedPlatform || row.platform === filters.selectedPlatform)
+      .filter((row) => !normalizedBrandName || row.brandName.includes(normalizedBrandName))
+      .reduce((total, row) => total + row.nonGiftConsumption, 0);
+
+    return {
+      date: dateKey,
+      label: dateKey.slice(5).replace("-", "/"),
+      consumption,
+    };
+  });
 };
 
 const aggregatePlatformCustomers = (platform: PlatformPerformance, dates: string[], brandName = "") => {

@@ -3,8 +3,9 @@ import { DashboardHeader } from '../components/DashboardHeader';
 import { FilterPanel } from '../components/FilterPanel';
 import { TaskCompletionPanel } from '../components/TaskCompletionPanel';
 import { CustomerDetailsPanel } from '../components/CustomerDetailsPanel';
+import { SevenDayTrendPanel } from '../components/SevenDayTrendPanel';
 import { RawDataView } from '../components/RawDataView';
-import { buildDashboardData } from '../lib/mock-data';
+import { buildDashboardData, buildSevenDayTrendData } from '../lib/mock-data';
 
 const getDateKey = (offsetDays: number) => {
   const date = new Date();
@@ -27,6 +28,8 @@ const Dashboard: React.FC = () => {
     previousEndDate: getDateKey(-2),
   });
   const dashboardData = React.useMemo(() => buildDashboardData(filters), [filters]);
+  const trendData = React.useMemo(() => buildSevenDayTrendData(filters), [filters]);
+  const isFocusedDashboard = Boolean(filters.selectedPlatform || filters.brandName.trim());
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0a1a] text-slate-50 overflow-hidden">
@@ -47,13 +50,25 @@ const Dashboard: React.FC = () => {
               <TaskCompletionPanel data={dashboardData} />
             </div>
 
+            {isFocusedDashboard && (
+              <div className="min-h-[420px] lg:col-span-6">
+                <SevenDayTrendPanel
+                  data={trendData}
+                  endDate={filters.endDate}
+                  selectedPlatform={filters.selectedPlatform}
+                  brandName={filters.brandName}
+                />
+              </div>
+            )}
+
             {/* Right Column - Customer Details */}
-            <div className="h-full min-h-[600px] lg:col-span-9">
+            <div className={`h-full min-h-[600px] ${isFocusedDashboard ? 'lg:col-span-3' : 'lg:col-span-9'}`}>
               <CustomerDetailsPanel
                 rankCount={filters.rankCount}
                 selectedPlatform={filters.selectedPlatform}
                 brandName={filters.brandName}
                 data={dashboardData}
+                compact={isFocusedDashboard}
               />
             </div>
           </div>

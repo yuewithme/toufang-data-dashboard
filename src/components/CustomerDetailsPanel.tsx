@@ -91,7 +91,8 @@ const PlatformCard: React.FC<{
   platform: PlatformPerformance;
   customers: PlatformCustomerItem[];
   rankCount: number;
-}> = ({ platform, customers, rankCount }) => {
+  compact?: boolean;
+}> = ({ platform, customers, rankCount, compact = false }) => {
   const styles = accentStyles[platform.accentColor];
   const rankedCustomers = [...customers]
     .sort((a, b) => b.consumption - a.consumption)
@@ -101,7 +102,7 @@ const PlatformCard: React.FC<{
 
   return (
     <section
-      className={`flex min-h-0 flex-col overflow-hidden rounded-lg border ${styles.border} ${styles.top} border-t-2 bg-[#152437] shadow-lg shadow-black/20`}
+      className={`flex min-h-0 flex-col overflow-hidden rounded-lg border ${styles.border} ${styles.top} border-t-2 bg-[#152437] shadow-lg shadow-black/20 ${compact ? 'min-h-[380px]' : ''}`}
       style={detailFontStyle}
     >
       <div className="px-3 pb-3 pt-3 xl:px-4 xl:pb-3.5 xl:pt-3.5">
@@ -164,7 +165,8 @@ export const CustomerDetailsPanel: React.FC<{
   rankCount: number;
   selectedPlatform: string;
   brandName: string;
-}> = ({ data, rankCount, selectedPlatform, brandName }) => {
+  compact?: boolean;
+}> = ({ data, rankCount, selectedPlatform, brandName, compact = false }) => {
   const normalizedBrandName = brandName.trim();
   const visiblePlatforms = selectedPlatform
     ? data.platformPerformance.filter((platform) => platform.name === selectedPlatform)
@@ -184,7 +186,13 @@ export const CustomerDetailsPanel: React.FC<{
         <h2 className="text-sm font-medium text-slate-400">客户明细</h2>
       </div>
 
-      <div className={`grid min-h-0 flex-1 gap-3 overflow-hidden ${platformViews.length === 1 ? 'grid-cols-1' : 'grid-cols-3'}`}>
+      <div
+        className={`grid min-h-0 flex-1 gap-3 ${
+          compact
+            ? 'grid-cols-1 overflow-y-auto pr-1 dashboard-scrollbar'
+            : `overflow-hidden ${platformViews.length === 1 ? 'grid-cols-1' : 'grid-cols-3'}`
+        }`}
+      >
         {platformViews.length > 0 ? (
           platformViews.map(({ platform, customers }) => (
             <PlatformCard
@@ -192,6 +200,7 @@ export const CustomerDetailsPanel: React.FC<{
               platform={platform}
               customers={customers}
               rankCount={rankCount}
+              compact={compact && platformViews.length > 1}
             />
           ))
         ) : (

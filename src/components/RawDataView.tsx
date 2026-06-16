@@ -257,7 +257,7 @@ export const RawDataView: React.FC<{
   };
 
   return (
-    <main className="flex-1 overflow-hidden p-4 md:p-6">
+    <main className="flex-1 overflow-hidden p-3 md:p-4 2xl:p-6">
       <section className="flex h-full flex-col rounded-lg border border-blue-900/50 bg-[#101a2e] shadow-xl shadow-black/20">
         <div className="flex shrink-0 items-center justify-between border-b border-blue-900/40 px-5 py-4">
           <div>
