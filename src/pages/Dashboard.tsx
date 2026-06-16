@@ -41,14 +41,14 @@ const Dashboard: React.FC = () => {
         <RawDataView filters={filters} onBack={() => setViewMode('dashboard')} />
       ) : (
         <main className="flex-1 overflow-y-auto p-4 md:p-6 no-scrollbar">
-          <div className="grid h-full w-full grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="grid h-full w-full grid-cols-1 gap-4 lg:grid-cols-12 xl:gap-6">
             {/* Left Column - Task Completion */}
-            <div className="lg:col-span-4 xl:col-span-3">
+            <div className="lg:col-span-3">
               <TaskCompletionPanel data={dashboardData} />
             </div>
 
             {/* Right Column - Customer Details */}
-            <div className="lg:col-span-8 xl:col-span-9 h-full min-h-[600px]">
+            <div className="h-full min-h-[600px] lg:col-span-9">
               <CustomerDetailsPanel
                 rankCount={filters.rankCount}
                 selectedPlatform={filters.selectedPlatform}

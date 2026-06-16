@@ -74,13 +74,13 @@ const MetricBlock: React.FC<{
   const compareText = compareType === 'percent' ? formatPercent(percentChange) : formatCompareNumber(change);
 
   return (
-    <div className="rounded-md border border-blue-900/40 bg-[#1b3048] p-4">
-      <div className="text-sm font-extrabold text-slate-200">{label}</div>
-      <div className="mt-3 flex min-w-0 items-baseline gap-2">
-        <span className={`min-w-0 text-[26px] font-extrabold leading-none tabular-nums ${valueClassName}`}>{formatNumber(current)}</span>
-        <span className={`shrink-0 text-base font-extrabold tabular-nums ${compareTone}`}>{arrow} {compareText}</span>
+    <div className="min-w-0 rounded-md border border-blue-900/40 bg-[#1b3048] p-3 xl:p-4">
+      <div className="whitespace-nowrap text-xs font-extrabold text-slate-200 xl:text-sm">{label}</div>
+      <div className="mt-2.5 flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-1 xl:mt-3 xl:gap-x-2">
+        <span className={`min-w-0 whitespace-nowrap text-[clamp(20px,1.45vw,26px)] font-extrabold leading-none tabular-nums ${valueClassName}`}>{formatNumber(current)}</span>
+        <span className={`shrink-0 whitespace-nowrap text-[clamp(12px,0.85vw,16px)] font-extrabold tabular-nums ${compareTone}`}>{arrow} {compareText}</span>
       </div>
-      <div className="mt-3 border-t border-slate-700/45 pt-2.5 text-sm font-bold tabular-nums text-slate-500">
+      <div className="mt-2.5 truncate border-t border-slate-700/45 pt-2 text-xs font-bold tabular-nums text-slate-500 xl:mt-3 xl:pt-2.5 xl:text-sm">
         上期 {formatNumber(previous)}
       </div>
     </div>
@@ -104,15 +104,15 @@ const PlatformCard: React.FC<{
       className={`flex min-h-0 flex-col overflow-hidden rounded-lg border ${styles.border} ${styles.top} border-t-2 bg-[#152437] shadow-lg shadow-black/20`}
       style={detailFontStyle}
     >
-      <div className="px-4 pb-3.5 pt-3.5">
+      <div className="px-3 pb-3 pt-3 xl:px-4 xl:pb-3.5 xl:pt-3.5">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className={`text-2xl font-extrabold ${styles.title}`}>{platform.name}</h3>
-          <span className="rounded-full border border-blue-400/30 bg-blue-500/15 px-3 py-1 text-sm font-extrabold text-blue-100">
+          <h3 className={`text-xl font-extrabold xl:text-2xl ${styles.title}`}>{platform.name}</h3>
+          <span className="rounded-full border border-blue-400/30 bg-blue-500/15 px-2.5 py-1 text-xs font-extrabold text-blue-100 xl:px-3 xl:text-sm">
             TOP {rankedCustomers.length}
           </span>
         </div>
 
-        <div className="grid grid-cols-[1.65fr_0.9fr] gap-3">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1.55fr)_minmax(104px,0.85fr)] gap-2 xl:grid-cols-[minmax(0,1.65fr)_minmax(120px,0.9fr)] xl:gap-3">
           <MetricBlock
             label="本期消耗量"
             current={platform.periodConsumption}

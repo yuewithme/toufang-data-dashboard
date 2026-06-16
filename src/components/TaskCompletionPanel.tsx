@@ -95,10 +95,10 @@ const StatGrid: React.FC<{ items: StatCard[] }> = ({ items }) => (
           <CardContent className="flex h-full flex-col justify-center gap-2.5 p-5">
             <div>
               <span className="text-xs font-semibold text-slate-400">{stat.label}</span>
-              <div className="mt-2 flex items-baseline gap-3">
-                <span className={`text-3xl font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
+              <div className="mt-2 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 xl:gap-x-3">
+                <span className={`whitespace-nowrap text-[clamp(26px,2vw,36px)] font-bold tabular-nums ${stat.tone}`}>{formatNumber(stat.value)}</span>
                 {stat.compare && (
-                  <span className={`text-[21px] font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
+                  <span className={`whitespace-nowrap text-[clamp(17px,1.15vw,21px)] font-extrabold tabular-nums leading-none drop-shadow ${compareClassName}`}>
                     {isUp ? '↑' : isDown ? '↓' : '→'} {stat.compare.text}
                   </span>
                 )}
